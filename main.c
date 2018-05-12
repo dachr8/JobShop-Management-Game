@@ -1,18 +1,15 @@
 #include <stdio.h>
-#include <malloc.h>
-#include "jobshop.h"
+#include "struct.h"
 
-JOBPTR inputByKeyboard();
+extern JOBPTR inputByKeyboard();
 
-JOBPTR inputByFile();
+extern JOBPTR inputByFile();
 
-void schedule();
+extern void schedule();
 
-void outputOnScreen();
+extern void outputOnScreen();
 
-void outputByFile();
-
-int jobNum, machineNum;
+extern void outputByFile();
 
 int main(void) {
 
@@ -45,54 +42,7 @@ int main(void) {
 
 
     outputOnScreen();
-    outputOnTxt();
+    outputByFile();
 
     return 0;
-}
-
-JOBPTR inputByKeyboard() {
-
-}
-
-/*
-void inputByKeyboard(int time[], int order[], int machineNum) {
-    for (int i = 0; i <= machineNum; ++i)
-        while (scanf("(%d，%d)", &time[i], &order[i]) != 2);
-}
-*/
-JOBPTR inputByFile() {
-    char fileName[99];
-
-    printf("Please enter the file name: ");
-    gets(fileName);
-
-    FILE *fp = fopen("filename", "r");
-    fscanf(fp, "%d %d", &jobNum, &machineNum);
-
-    JOBPTR job[jobNum] = {NULL};
-    int num = 0;
-    fscanf(fp, "%d", &num);
-    while (num != -1) {
-        JOBPTR tmp = job[num] = malloc(sizeof(struct job));
-        while (fscanf(fp, "(%d，%d)", &tmp->nextMachine->time, &tmp->nextMachine->machine) == 2)
-            tmp = tmp->nextMachine;
-        tmp->nextMachine = NULL;
-        fscanf(fp, "%d", &num);
-    }
-
-    fclose(fp);
-
-    return job[];
-}
-
-void schedule() {
-
-}
-
-void outputOnScreen() {
-    printf("End ");
-}
-
-void outputByFile() {
-
 }
