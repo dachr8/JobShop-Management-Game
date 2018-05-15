@@ -3,39 +3,45 @@
 #include "struct.h"
 
 JOBPTR inputByKeyboard() {
+    scanf("%d %d", &jobNum, &machineNum);
 
+    JOBPTR job[jobNum] = {NULL};
+    int num = 0;
+    while (scanf("%d", &num) && (num != -1)) {
+        JOBPTR tmp = job[num] = malloc(sizeof(struct job));
+        while (scanf("(%d，%d)", &tmp->nextMachine->time, &tmp->nextMachine->machine) == 2)
+            tmp = tmp->nextMachine;
+        tmp->nextMachine = NULL;
+    }
+
+    return *job;
 }
 
-/*
-void inputByKeyboard(int time[], int order[], int machineNum) {
-    for (int i = 0; i <= machineNum; ++i)
-        while (scanf("(%d，%d)", &time[i], &order[i]) != 2);
-}
-*/
 JOBPTR inputByFile() {
     FILE *fp = fopen("input.txt", "r");
     fscanf(fp, "%d %d", &jobNum, &machineNum);
 
     JOBPTR job[jobNum] = {NULL};
     int num = 0;
-    fscanf(fp, "%d", &num);
-    while (num != -1) {
+    while (fscanf(fp, "%d", &num) && (num != -1)) {
         JOBPTR tmp = job[num] = malloc(sizeof(struct job));
         while (fscanf(fp, "(%d，%d)", &tmp->nextMachine->time, &tmp->nextMachine->machine) == 2)
             tmp = tmp->nextMachine;
         tmp->nextMachine = NULL;
-        fscanf(fp, "%d", &num);
     }
 
     fclose(fp);
 
-    return job[];
+    return *job;
 }
 
-void outputOnScreen() {
+void outputOnScreen(JOBPTR machine) {
     printf("End ");
 }
 
-void outputByFile() {
+void outputByFile(JOBPTR machine) {
+    FILE *fp = fopen("output.txt", "w");
+
+    fclose(fp);
 
 }
