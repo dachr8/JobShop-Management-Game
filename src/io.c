@@ -13,12 +13,7 @@ void inputByKeyboard(int time[], int order[], int machineNum) {
 }
 */
 JOBPTR inputByFile() {
-    char fileName[99];
-
-    printf("Please enter the file name: ");
-    gets(fileName);
-
-    FILE *fp = fopen("filename", "r");
+    FILE *fp = fopen("input.txt", "r");
     fscanf(fp, "%d %d", &jobNum, &machineNum);
 
     JOBPTR job[jobNum] = {NULL};
