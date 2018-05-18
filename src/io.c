@@ -3,7 +3,7 @@
 #include <malloc.h>
 #include "struct.h"
 
-JOBPTR getJobByKeyboard() {
+JOBPTR *getJobByKeyboard() {
     scanf("%d %d", &jobNum, &machineNum);
 
     JOBPTR job[jobNum] = {NULL};
@@ -15,7 +15,7 @@ JOBPTR getJobByKeyboard() {
         tmp->nextMachine = NULL;
     }
 
-    return *job;
+    return *(&job);
 }
 
 void getOverhaulByKeyboard() {
@@ -26,7 +26,7 @@ void getOverhaulByKeyboard() {
     }
 }
 
-JOBPTR getByFile() {
+JOBPTR *getByFile() {
     FILE *fp = fopen("input.txt", "r");
     fscanf(fp, "%d %d", &jobNum, &machineNum);
 
@@ -47,15 +47,61 @@ JOBPTR getByFile() {
 
     fclose(fp);
 
-    return *job;
+    return *(&job);
 }
 
-void outputOnScreen(MACHINEPTR machine) {
-    printf("End %d\n", makeSpan);
+void outputOnScreen(MACHINEPTR *machine, JOBPTR *job) {
+    for (int i = 0; i < machineNum; ++i) {
+        printf("\nM%d", i);
+        MACHINEPTR tmp = machine[i];
+        while (tmp != NULL) {
+            printf(" (%d,", tmp->timeline);
+            if (tmp->job == -1)
+                printf("\"Overhaul\"");
+            else {
+                printf("%d-", tmp->job);
+                JOBPTR tmp2 = job[i];
+                for (int j = 0;; ++j) {
+                    if (tmp2->machine == i) {
+                        printf("%d", i);
+                        break;
+                    }
+                    tmp2 = tmp2->nextMachine;
+                }
+            }
+            printf(",%d)", tmp->time);
+            tmp = tmp->nextJob;
+        }
+    }
+    printf("\nEnd %d\n", makeSpan);
 }
 
-void outputByFile(MACHINEPTR machine) {
-    FILE *fp = fopen("output.txt", "w");
+void outputByFile(MACHINEPTR *machine, JOBPTR *job) {
+    FILE *fp = fopen("output.txt", "a");
+
+    for (int i = 0; i < machineNum; ++i) {
+        fprintf(fp, "\nM%d", i);
+        MACHINEPTR tmp = machine[i];
+        while (tmp != NULL) {
+            fprintf(fp, " (%d,", tmp->timeline);
+            if (tmp->job == -1)
+                fprintf(fp, "\"Overhaul\"");
+            else {
+                fprintf(fp, "%d-", tmp->job);
+                JOBPTR tmp2 = job[i];
+                for (int j = 0;; ++j) {
+                    if (tmp2->machine == i) {
+                        printf("%d", i);
+                        break;
+                    }
+                    tmp2 = tmp2->nextMachine;
+                }
+            }
+            fprintf(fp, ",%d)", tmp->time);
+            tmp = tmp->nextJob;
+        }
+    }
+    fprintf(fp, "\nEnd %d\n", makeSpan);
 
     fclose(fp);
 }
