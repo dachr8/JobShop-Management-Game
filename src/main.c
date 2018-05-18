@@ -1,25 +1,30 @@
+//author dachr
 #include <stdio.h>
 #include "struct.h"
 
-extern JOBPTR inputByKeyboard();
+extern JOBPTR getJobByKeyboard();
 
-extern JOBPTR inputByFile();
+extern void getOverhaulByKeyboard();
 
-extern JOBPTR inputByGraph();
+extern JOBPTR getByFile();
 
-extern JOBPTR schedule(JOBPTR job);
+extern JOBPTR getJobByGraph();
 
-extern JOBPTR reSchedule(JOBPTR overhaul, JOBPTR machine);
+extern void getOverhaulByGraph();
 
-extern void outputOnScreen(JOBPTR machine);
+extern MACHINEPTR schedule(JOBPTR job);
 
-extern void outputByFile(JOBPTR machine);
+extern MACHINEPTR reSchedule(MACHINEPTR machine);
 
-extern void outputByGraph(JOBPTR machine);
+extern void outputOnScreen(MACHINEPTR machine);
+
+extern void outputByFile(MACHINEPTR machine);
+
+extern void outputByGraph(MACHINEPTR machine);
 
 int main(void) {
-    int makeSpan;
-    JOBPTR job, machine, overhaul;
+    JOBPTR job;
+    MACHINEPTR machine;
 
     int inputMode;
     printf("Input Mode: 1.Keyboard 2.File 3.graph\n");
@@ -27,35 +32,36 @@ int main(void) {
     scanf("%d", &inputMode);
     switch (inputMode) {
         case 1:
-            job = inputByKeyboard();
+            job = getJobByKeyboard();
             machine = schedule(job);
             outputOnScreen(machine);
             outputByFile(machine);
 
-            overhaul = inputByKeyboard();
-            machine = reSchedule(overhaul, machine);
+            getOverhaulByKeyboard();
+
+            machine = reSchedule(machine);
             outputOnScreen(machine);
             outputByFile(machine);
             break;
         case 2:
-            job = inputByFile();
+            job = getByFile();
             machine = schedule(job);
             outputOnScreen(machine);
             outputByFile(machine);
 
-            overhaul = inputByFile();
-            machine = reSchedule(overhaul, machine);
+            machine = reSchedule(machine);
             outputOnScreen(machine);
             outputByFile(machine);
             break;
         case 3:
-            job = inputByGraph();
+            job = getJobByGraph();
             machine = schedule(job);
             outputByGraph(machine);
             outputByFile(machine);
 
-            overhaul = inputByGraph();
-            machine = reSchedule(overhaul, machine);
+            getOverhaulByGraph();
+
+            machine = reSchedule(machine);
             outputByGraph(machine);
             outputByFile(machine);
             break;

@@ -1,6 +1,9 @@
+//author dachr
 #include "struct.h"
 
-JOBPTR inputByGraph();
+JOBPTR getJobByGraph();
 
-extern void outputByGraph(JOBPTR machine);
+void getOverhaulByGraph();
+
+extern void outputByGraph(MACHINEPTR machine);
 

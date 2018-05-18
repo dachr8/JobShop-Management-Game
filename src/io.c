@@ -1,8 +1,9 @@
+//author dachr
 #include <stdio.h>
 #include <malloc.h>
 #include "struct.h"
 
-JOBPTR inputByKeyboard() {
+JOBPTR getJobByKeyboard() {
     scanf("%d %d", &jobNum, &machineNum);
 
     JOBPTR job[jobNum] = {NULL};
@@ -17,7 +18,15 @@ JOBPTR inputByKeyboard() {
     return *job;
 }
 
-JOBPTR inputByFile() {
+void getOverhaulByKeyboard() {
+    int num = 0;
+    while (num != -1) {
+        scanf("%d%d%d", &overhaul.timeline, &overhaul.job, &overhaul.time);
+        scanf("%d", &num);
+    }
+}
+
+JOBPTR getByFile() {
     FILE *fp = fopen("input.txt", "r");
     fscanf(fp, "%d %d", &jobNum, &machineNum);
 
@@ -30,18 +39,23 @@ JOBPTR inputByFile() {
         tmp->nextMachine = NULL;
     }
 
+    num = 0;
+    while (num != -1) {
+        scanf("%d%d%d", &overhaul.timeline, &overhaul.job, &overhaul.time);
+        scanf("%d", &num);
+    }
+
     fclose(fp);
 
     return *job;
 }
 
-void outputOnScreen(JOBPTR machine) {
-    printf("End ");
+void outputOnScreen(MACHINEPTR machine) {
+    printf("End %d\n", makeSpan);
 }
 
-void outputByFile(JOBPTR machine) {
+void outputByFile(MACHINEPTR machine) {
     FILE *fp = fopen("output.txt", "w");
 
     fclose(fp);
-
 }

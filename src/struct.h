@@ -1,7 +1,8 @@
 #ifndef JOBSHOP_MANAGEMENT_GAME_JOBSHOP_H
 #define JOBSHOP_MANAGEMENT_GAME_JOBSHOP_H
 
-int jobNum, machineNum;
+int jobNum, machineNum, makeSpan;
+struct machine overhaul;
 
 typedef struct job {
     int machine;
@@ -12,7 +13,7 @@ typedef struct job {
 typedef struct machine {
     int job;
     int time;
-    int totalTime;
+    int timeline;
     struct machine *nextJob;
 } *MACHINEPTR;
 
