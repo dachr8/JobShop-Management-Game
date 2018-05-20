@@ -10,8 +10,8 @@ JOBPTR *getJobByKeyboard() {
     int num = 0;
     while (scanf("%d", &num) && (num != -1)) {
         JOBPTR tmp = job[num] = malloc(sizeof(struct job));
-        while (scanf("(%d，%d)", &tmp->nextMachine->time, &tmp->nextMachine->machine) == 2)
-            tmp = tmp->nextMachine;
+        while (scanf("(%d，%d)", &tmp->time, &tmp->machine) == 2)
+            tmp = tmp->nextMachine = malloc(sizeof(struct job));
         tmp->nextMachine = NULL;
     }
 
@@ -20,8 +20,10 @@ JOBPTR *getJobByKeyboard() {
 
 void getOverhaulByKeyboard() {
     int num = 0;
+    OVERHAULPTR tmp = overhaul = malloc(sizeof(struct overhaul));
     while (num != -1) {
-        scanf("%d%d%d", &overhaul.timeline, &overhaul.job, &overhaul.time);
+        while (scanf("%d%d%d", &tmp->timeline, &overhaul->machine, &overhaul->time) == 3)
+            tmp = tmp->nextOverhaul = malloc(sizeof(struct overhaul));
         scanf("%d", &num);
     }
 }
@@ -34,15 +36,17 @@ JOBPTR *getByFile() {
     int num = 0;
     while (fscanf(fp, "%d", &num) && (num != -1)) {
         JOBPTR tmp = job[num] = malloc(sizeof(struct job));
-        while (fscanf(fp, "(%d，%d)", &tmp->nextMachine->time, &tmp->nextMachine->machine) == 2)
-            tmp = tmp->nextMachine;
+        while (fscanf(fp, "(%d，%d)", &tmp->time, &tmp->machine) == 2)
+            tmp = tmp->nextMachine = malloc(sizeof(struct machine));
         tmp->nextMachine = NULL;
     }
 
     num = 0;
+    OVERHAULPTR tmp = overhaul = malloc(sizeof(struct overhaul));
     while (num != -1) {
-        scanf("%d%d%d", &overhaul.timeline, &overhaul.job, &overhaul.time);
-        scanf("%d", &num);
+        while (fscanf(fp, "%d%d%d", &tmp->timeline, &overhaul->machine, &overhaul->time) == 3)
+            tmp = tmp->nextOverhaul = malloc(sizeof(struct overhaul));
+        fscanf(fp, "%d", &num);
     }
 
     fclose(fp);
@@ -104,4 +108,28 @@ void outputByFile(MACHINEPTR *machine, JOBPTR *job) {
     fprintf(fp, "\nEnd %d\n", makeSpan);
 
     fclose(fp);
+}
+
+extern void freeAll(JOBPTR *job, MACHINEPTR *machine, OVERHAULPTR overhaul) {
+    for (int i = 0; i < jobNum; ++i) {
+        JOBPTR tmp = job[i];
+        while (job[i] != NULL) {
+            tmp = job[i];
+            job[i] = job[i]->nextMachine;
+            free(tmp);
+        }
+    }
+    for (int i = 0; i < machineNum; ++i) {
+        MACHINEPTR tmp = machine[i];
+        while (machine[i] != NULL) {
+            tmp = machine[i];
+            machine[i] = machine[i]->nextJob;
+            free(tmp);
+        }
+    }
+    while (overhaul != NULL) {
+        OVERHAULPTR tmp = overhaul;
+        overhaul = overhaul->nextOverhaul;
+        free(tmp);
+    }
 }
