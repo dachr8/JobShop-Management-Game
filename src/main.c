@@ -2,15 +2,15 @@
 #include <stdio.h>
 #include "struct.h"
 
-extern JOBPTR *getJobByStdin();
+extern JOBPTR *getJob();
 
-extern void getOverhaulByStdin();
+extern void getOverhaul();
 
 extern MACHINEPTR *schedule(JOBPTR *job);
 
 extern MACHINEPTR *reSchedule(MACHINEPTR *machine, JOBPTR *job);
 
-extern void outputByStdout(MACHINEPTR *machine, JOBPTR *job);
+extern void output(MACHINEPTR *machine, JOBPTR *job);
 
 extern void freeAll(JOBPTR *job, MACHINEPTR *machine, OVERHAULPTR overhaul);
 
@@ -24,27 +24,27 @@ int main(void) {
     scanf("%d", &inputMode);
     switch (inputMode) {
         case 1:
-            job = getJobByStdin();
+            job = getJob();
             printf("\nPlease wait for the output result...\n");
             machine = schedule(job);
-            outputByStdout(machine, job);
+            output(machine, job);
 
             printf("\nPlease enter overhaul information:\n");
-            getOverhaulByStdin();
+            getOverhaul();
             machine = reSchedule(machine, job);
-            outputByStdout(machine, job);
+            output(machine, job);
             break;
         case 2:
             freopen("input.txt", "r", stdin);
-            job = getJobByStdin();
-            getOverhaulByStdin();
-            fclose(stdin);
-            machine = schedule(job);
             freopen("output.txt", "w", stdout);
-            outputByStdout(machine, job);
+            job = getJob();
+            getOverhaul();
+            machine = schedule(job);
+            output(machine, job);
 
             machine = reSchedule(machine, job);
-            outputByStdout(machine, job);
+            output(machine, job);
+            fclose(stdin);
             fclose(stdout);
             break;
         default:

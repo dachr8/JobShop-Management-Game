@@ -3,7 +3,7 @@
 #include <malloc.h>
 #include "struct.h"
 
-JOBPTR *getJobByStdin() {
+JOBPTR *getJob() {
     scanf("%d %d", &jobNum, &machineNum);
 
     JOBPTR job[jobNum] = {NULL};
@@ -18,7 +18,7 @@ JOBPTR *getJobByStdin() {
     return *(&job);
 }
 
-void getOverhaulByStdin() {
+void getOverhaul() {
     int num = 0;
     OVERHAULPTR tmp = overhaul = malloc(sizeof(struct overhaul));
     while (num != -1) {
@@ -28,7 +28,7 @@ void getOverhaulByStdin() {
     }
 }
 
-void outputByStdout(MACHINEPTR *machine, JOBPTR *job) {
+void output(MACHINEPTR *machine, JOBPTR *job) {
     for (int i = 0; i < machineNum; ++i) {
         printf("\nM%d", i);
         MACHINEPTR tmp = machine[i];
@@ -54,19 +54,17 @@ void outputByStdout(MACHINEPTR *machine, JOBPTR *job) {
     printf("\nEnd %d\n", makeSpan);
 }
 
-extern void freeAll(JOBPTR *job, MACHINEPTR *machine, OVERHAULPTR overhaul) {
+void freeAll(JOBPTR *job, MACHINEPTR *machine, OVERHAULPTR overhaul) {
     for (int i = 0; i < jobNum; ++i) {
-        JOBPTR tmp = job[i];
         while (job[i] != NULL) {
-            tmp = job[i];
+            JOBPTR tmp = job[i];
             job[i] = job[i]->nextMachine;
             free(tmp);
         }
     }
     for (int i = 0; i < machineNum; ++i) {
-        MACHINEPTR tmp = machine[i];
         while (machine[i] != NULL) {
-            tmp = machine[i];
+            MACHINEPTR tmp = machine[i];
             machine[i] = machine[i]->nextJob;
             free(tmp);
         }
