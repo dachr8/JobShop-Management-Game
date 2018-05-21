@@ -19,36 +19,39 @@ int main(void) {
     MACHINEPTR *machine = NULL;
 
     int inputMode;
-    printf("IO Mode: 1.Keyboard 2.File\n");
-    printf("Please input your input mode: ");
+    puts("IO Mode: 1.Keyboard 2.File");
+    puts("Please input your input mode: ");
     scanf("%d", &inputMode);
     switch (inputMode) {
         case 1:
             job = getJob();
-            printf("\nPlease wait for the output result...\n");
+
+            puts("Please wait for the output result...");
             machine = schedule(job);
             output(machine, job);
 
-            printf("\nPlease enter overhaul information:\n");
+            puts("Please enter overhaul information:");
             getOverhaul();
             machine = reSchedule(machine, job);
             output(machine, job);
             break;
         case 2:
             freopen("input.txt", "r", stdin);
-            freopen("output.txt", "w", stdout);
             job = getJob();
             getOverhaul();
+            fclose(stdin);
+
+            puts("Please wait for the output result...");
+            freopen("output.txt", "w", stdout);
             machine = schedule(job);
             output(machine, job);
 
             machine = reSchedule(machine, job);
             output(machine, job);
-            fclose(stdin);
             fclose(stdout);
             break;
         default:
-            printf("Please input your IO mode: ");
+            puts("Please input your IO mode: ");
             scanf("%d", &inputMode);
     }
     freeAll(job, machine, overhaul);
