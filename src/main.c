@@ -12,27 +12,24 @@ extern MACHINEPTR *reSchedule(MACHINEPTR *machine);
 
 extern void output(MACHINEPTR *machine);
 
-extern void freeAll(MACHINEPTR *machine, OVERHAULPTR overhaul);
+extern void freeAll(MACHINEPTR *machine, OVERHAULPTR overhaul, int *times);
 
 int main(void) {
-    int *times;
+    int *times = NULL, inputMode;
     MACHINEPTR *machine = NULL;
 
-    int inputMode;
     puts("IO Mode: 1.Keyboard 2.File");
     puts("Please input your input mode: ");
     scanf("%d", &inputMode);
     switch (inputMode) {
         case 1:
             times = getJob();
-
             puts("Please wait for the output result...");
             machine = schedule(times);
             output(machine);
 
             puts("Please enter overhaul information:");
             getOverhaul();
-
             machine = reSchedule(machine);
             output(machine);
             break;
@@ -45,7 +42,6 @@ int main(void) {
             puts("Please wait for the output result...");
             machine = schedule(times);
             output(machine);
-
             machine = reSchedule(machine);
             output(machine);
             break;
@@ -53,7 +49,7 @@ int main(void) {
             puts("Please input your IO mode: ");
             scanf("%d", &inputMode);
     }
-    freeAll(machine, overhaul);
+    freeAll(machine, overhaul, times);
 
     return 0;
 }

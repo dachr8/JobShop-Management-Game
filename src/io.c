@@ -18,7 +18,7 @@ int *getJob() {
         }
         tmp->nextMachine = NULL;
     }
-    
+
     return times;
 }
 
@@ -67,22 +67,23 @@ void output(MACHINEPTR *machine) {
     fclose(fp);
 }
 
-void freeAll(MACHINEPTR *machine, OVERHAULPTR overhaul) {
+void freeAll(MACHINEPTR *machine, OVERHAULPTR overhaul, int *times) {
     for (int i = 0; i < jobNum; ++i) {
-        while (job[i] != NULL) {
+        free(&times[i]);
+        while (job[i]) {
             JOBPTR tmp = job[i];
             job[i] = job[i]->nextMachine;
             free(tmp);
         }
     }
     for (int i = 0; i < machineNum; ++i) {
-        while (machine[i] != NULL) {
+        while (machine[i]) {
             MACHINEPTR tmp = machine[i];
             machine[i] = machine[i]->nextJob;
             free(tmp);
         }
     }
-    while (overhaul != NULL) {
+    while (overhaul) {
         OVERHAULPTR tmp = overhaul;
         overhaul = overhaul->nextOverhaul;
         free(tmp);
