@@ -29,29 +29,38 @@ void getOverhaul() {
 }
 
 void output(MACHINEPTR *machine, JOBPTR *job) {
+    FILE *fp = fopen("output.txt", "a");
     for (int i = 0; i < machineNum; ++i) {
         printf("\nM%d", i);
+        fprintf(fp, "\nM%d", i);
         MACHINEPTR tmp = machine[i];
         while (tmp != NULL) {
             printf(" (%d,", tmp->timeline);
-            if (tmp->job == -1)
+            fprintf(fp, " (%d,", tmp->timeline);
+            if (tmp->job == -1) {
                 printf("\"Overhaul\"");
-            else {
+                fprintf(fp, "\"Overhaul\"");
+            } else {
                 printf("%d-", tmp->job);
+                fprintf(fp, "%d-", tmp->job);
                 JOBPTR tmp2 = job[i];
                 for (int j = 0;; ++j) {
                     if (tmp2->machine == i) {
                         printf("%d", i);
+                        fprintf(fp, "%d", i);
                         break;
                     }
                     tmp2 = tmp2->nextMachine;
                 }
             }
             printf(",%d)", tmp->time);
+            fprintf(fp, ",%d)", tmp->time);
             tmp = tmp->nextJob;
         }
     }
     printf("\nEnd %d\n", makeSpan);
+    fprintf(fp, "\nEnd %d\n", makeSpan);
+    fclose(fp);
 }
 
 void freeAll(JOBPTR *job, MACHINEPTR *machine, OVERHAULPTR overhaul) {

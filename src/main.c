@@ -32,6 +32,7 @@ int main(void) {
 
             puts("Please enter overhaul information:");
             getOverhaul();
+
             machine = reSchedule(machine, job);
             output(machine, job);
             break;
@@ -42,13 +43,11 @@ int main(void) {
             fclose(stdin);
 
             puts("Please wait for the output result...");
-            freopen("output.txt", "w", stdout);
             machine = schedule(job);
             output(machine, job);
 
             machine = reSchedule(machine, job);
             output(machine, job);
-            fclose(stdout);
             break;
         default:
             puts("Please input your IO mode: ");
