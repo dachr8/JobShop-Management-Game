@@ -22,6 +22,7 @@ typedef struct overhaul {
 } *OVERHAULPTR;
 
 int jobNum, machineNum, makeSpan;
+JOBPTR *job;
 OVERHAULPTR overhaul;
 
 #endif //JOBSHOP_MANAGEMENT_GAME_JOBSHOP_H

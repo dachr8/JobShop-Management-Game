@@ -3,19 +3,23 @@
 #include <malloc.h>
 #include "struct.h"
 
-JOBPTR *getJob() {
+int *getJob() {
     scanf("%d %d", &jobNum, &machineNum);
+    int *times = malloc(jobNum * sizeof(int));
+    job = malloc(jobNum * sizeof(JOBPTR));
 
-    JOBPTR job[jobNum] = {NULL};
     int num = 0;
     while (scanf("%d", &num) && (num != -1)) {
         JOBPTR tmp = job[num] = malloc(sizeof(struct job));
-        while (scanf("(%d，%d)", &tmp->time, &tmp->machine) == 2)
+        times[num] = 0;
+        while (scanf("(%d，%d)", &tmp->time, &tmp->machine) == 2) {
             tmp = tmp->nextMachine = malloc(sizeof(struct job));
+            times++;
+        }
         tmp->nextMachine = NULL;
     }
-
-    return *(&job);
+    
+    return times;
 }
 
 void getOverhaul() {
@@ -28,7 +32,7 @@ void getOverhaul() {
     }
 }
 
-void output(MACHINEPTR *machine, JOBPTR *job) {
+void output(MACHINEPTR *machine) {
     FILE *fp = fopen("output.txt", "a");
     for (int i = 0; i < machineNum; ++i) {
         printf("\nM%d", i);
@@ -63,7 +67,7 @@ void output(MACHINEPTR *machine, JOBPTR *job) {
     fclose(fp);
 }
 
-void freeAll(JOBPTR *job, MACHINEPTR *machine, OVERHAULPTR overhaul) {
+void freeAll(MACHINEPTR *machine, OVERHAULPTR overhaul) {
     for (int i = 0; i < jobNum; ++i) {
         while (job[i] != NULL) {
             JOBPTR tmp = job[i];

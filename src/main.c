@@ -2,20 +2,20 @@
 #include <stdio.h>
 #include "struct.h"
 
-extern JOBPTR *getJob();
+extern int *getJob();
 
 extern void getOverhaul();
 
-extern MACHINEPTR *schedule(JOBPTR *job);
+extern MACHINEPTR *schedule(int *times);
 
-extern MACHINEPTR *reSchedule(MACHINEPTR *machine, JOBPTR *job);
+extern MACHINEPTR *reSchedule(MACHINEPTR *machine);
 
-extern void output(MACHINEPTR *machine, JOBPTR *job);
+extern void output(MACHINEPTR *machine);
 
-extern void freeAll(JOBPTR *job, MACHINEPTR *machine, OVERHAULPTR overhaul);
+extern void freeAll(MACHINEPTR *machine, OVERHAULPTR overhaul);
 
 int main(void) {
-    JOBPTR *job = NULL;
+    int *times;
     MACHINEPTR *machine = NULL;
 
     int inputMode;
@@ -24,36 +24,36 @@ int main(void) {
     scanf("%d", &inputMode);
     switch (inputMode) {
         case 1:
-            job = getJob();
+            times = getJob();
 
             puts("Please wait for the output result...");
-            machine = schedule(job);
-            output(machine, job);
+            machine = schedule(times);
+            output(machine);
 
             puts("Please enter overhaul information:");
             getOverhaul();
 
-            machine = reSchedule(machine, job);
-            output(machine, job);
+            machine = reSchedule(machine);
+            output(machine);
             break;
         case 2:
             freopen("input.txt", "r", stdin);
-            job = getJob();
+            times = getJob();
             getOverhaul();
             fclose(stdin);
 
             puts("Please wait for the output result...");
-            machine = schedule(job);
-            output(machine, job);
+            machine = schedule(times);
+            output(machine);
 
-            machine = reSchedule(machine, job);
-            output(machine, job);
+            machine = reSchedule(machine);
+            output(machine);
             break;
         default:
             puts("Please input your IO mode: ");
             scanf("%d", &inputMode);
     }
-    freeAll(job, machine, overhaul);
+    freeAll(machine, overhaul);
 
     return 0;
 }
