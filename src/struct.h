@@ -21,7 +21,7 @@ typedef struct overhaul {
     struct overhaul *nextOverhaul;
 } *OVERHAULPTR;
 
-int jobNum, machineNum, makeSpan;
+int jobNum, machineNum, minMakespan;
 JOBPTR *job;
 OVERHAULPTR overhaul;
 

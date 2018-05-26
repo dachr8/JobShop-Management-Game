@@ -5,7 +5,7 @@
 #include <time.h>
 #include "struct.h"
 
-#define ZJQ 100+30*jobNum*machineNum
+#define SIZE (5*jobNum*machineNum)
 
 struct graph {
     int point;
@@ -22,22 +22,44 @@ typedef struct list {
 
 int len;
 
-
 void swap(int *a, int *b);
 
 int **initPopulation(const int *times);
 
-void crossover(int **population, int a, int b);
+int *crossover(int **population, int a, int b);
 
-void mutation(int **population, const int *times, int num);
-
-void computeDAGAndStartTime(const int *chromosome, const int *times);
+int computeDAGAndStartTime(const int *chromosome, const int *times);
 
 MACHINEPTR *schedule(const int *times) {
+    int **population = initPopulation(times), makespan[SIZE];
+    for (int i = 0; i < SIZE; ++i)
+        makespan[i] = computeDAGAndStartTime(population[i], times);
+    for (int i = 0, flag = 1; (i < SIZE - 1) && flag; ++i) {
+        flag = 0;
+        for (int j = 0; j < SIZE - 1; ++j)
+            if (makespan[j] > makespan[j + 1]) {
+                swap(&makespan[j], &makespan[j + 1]);
+                swap(population[j], population[j + 1]);
+                flag = 1;
+            }
+    }
 
-    int chromosome[] = {0, 1, 0, 1, 0, 1, 0, 1, 0, 1};
-    len = 10;
-    computeDAGAndStartTime(chromosome, times);
+    for (int i = 0; i < SIZE; ++i) {
+        srand((unsigned) time(NULL));
+        int *child = crossover(population, rand() % SIZE, rand() % SIZE);
+        if (!rand() % 10)
+            swap(&child[rand() % len], &child[rand() % len]);
+        int childMakespan = computeDAGAndStartTime(child, times);
+        for (int j = 0, flag = 1; j < SIZE && flag; ++j)
+            if (childMakespan < makespan[j]) {
+                for (int k = j; k < SIZE; ++k) {
+                    swap(&childMakespan, &makespan[k]);
+                    swap(child, population[k]);
+                }
+                flag = 0;
+            }
+    }
+    minMakespan = makespan[0];
 
     return NULL;
 }
@@ -47,10 +69,9 @@ MACHINEPTR *reSchedule(MACHINEPTR *machine) {
 }
 
 void swap(int *a, int *b) {
-    int s;
-    s = *a;
+    int t = *a;
     *a = *b;
-    *b = s;
+    *b = t;
 }
 
 int **initPopulation(const int *times) {
@@ -64,17 +85,17 @@ int **initPopulation(const int *times) {
             p[k++] = i;
     //ps 初始化的种群数量
 
-    int **population = malloc(sizeof(p) * ZJQ);//存储ps条染色体
+    int **population = malloc(sizeof(p) * SIZE);//存储ps条染色体
     srand((unsigned) time(NULL));
-    for (int i = 0; i < ZJQ; ++i, population[i] = p)            //对染色体p进行ZJQ次操作 建立初始种群
+    for (int i = 0; i < SIZE; population[i++] = p)            //对染色体p进行SIZE次操作 建立初始种群
         for (int j = 0; j < len; ++j)  //随机打乱基因顺序.times[j]是p染色体的长度
-            swap(&p[j], &p[rand() % times[j]]);
+            swap(&p[j], &p[rand() % len]);
 
     return population;
 }
 
 
-LISTPTR cross_buildList(int **population, int pick) {                        //交叉-建立有序偶
+LISTPTR crossBuildList(int **population, int pick) {                        //交叉-建立有序偶
     LISTPTR headPtr = NULL, curPtr, lastPtr = NULL;
     int time[jobNum];
     for (int i = 0; i < jobNum; ++i)
@@ -99,7 +120,7 @@ LISTPTR cross_buildList(int **population, int pick) {                        //�
     return headPtr;
 }
 
-void cross_insert(LISTPTR insertPtr, LISTPTR forwardPtr, LISTPTR backPtr) {     //交叉-插入部分
+void crossInsert(LISTPTR insertPtr, LISTPTR forwardPtr, LISTPTR backPtr) {     //交叉-插入部分
     LISTPTR innextPtr = insertPtr->nextPtr;
     LISTPTR forPtr = forwardPtr->nextPtr;
     LISTPTR bkPtr = backPtr->nextPtr;
@@ -108,11 +129,12 @@ void cross_insert(LISTPTR insertPtr, LISTPTR forwardPtr, LISTPTR backPtr) {     
     backPtr->nextPtr = innextPtr;
 }
 
-void crossover(int **population, int a, int b) {                   // 交叉主函数
-    LISTPTR bPtr = cross_buildList(population, b);
+int *crossover(int **population, int a, int b) {                   // 交叉主函数
+    LISTPTR bPtr = crossBuildList(population, b);
+    srand((unsigned) time(NULL));
     int clen = rand() % (len / 2) + 1;
 
-    LISTPTR forwardPtr = cross_buildList(population, a);                       //找a起始、终止交换的位置 b中插入a的位置
+    LISTPTR forwardPtr = crossBuildList(population, a);                       //找a起始、终止交换的位置 b中插入a的位置
     for (int i = 0; i < rand() % ((len / 2) + 1); ++i)
         forwardPtr = forwardPtr->nextPtr;
     LISTPTR backPtr = forwardPtr;
@@ -122,7 +144,7 @@ void crossover(int **population, int a, int b) {                   // 交叉主�
     for (int i = 0; i < rand() % ((len / 2) + 1); ++i)
         insertPtr = insertPtr->nextPtr;
 
-    cross_insert(insertPtr, forwardPtr, backPtr);               //将a截出的片段差入b中
+    crossInsert(insertPtr, forwardPtr, backPtr);               //将a截出的片段差入b中
 
     LISTPTR tPtr = bPtr->nextPtr, fPtr = bPtr;
     for (int i = 0; i < clen; ++i) {
@@ -136,18 +158,15 @@ void crossover(int **population, int a, int b) {                   // 交叉主�
         }
         tPtr = bPtr;
     }
-    for (int i = 0, g = ZJQ; i < len; ++i) {//将交叉后的子代放到种群中
+    for (int i = 0, g = SIZE; i < len; ++i) {//将交叉后的子代放到种群中
         population[++g][i] = bPtr->job;
         bPtr = bPtr->nextPtr;
     }
+
+    return NULL;
 }
 
-void mutation(int **population, const int *times, int num) {
-    srand((unsigned) time(NULL));//随机选两个位置调换
-    swap(&population[num][rand() % times[num]], &population[num][rand() % times[num]]);
-}
-
-void computeDAGAndStartTime(const int *chromosome, const int *times) {
+int computeDAGAndStartTime(const int *chromosome, const int *times) {
     int num, t, p;//为计算变量
     int T[jobNum];//构建长度为工件数的全0数组，操作累加器
     int tasksResource[machineNum][jobNum];//存放上一次使用这台机器的节点相对工序号
@@ -219,8 +238,10 @@ void computeDAGAndStartTime(const int *chromosome, const int *times) {
                 startTime[i][j] = max + current;
             }
         }
-    for (int i = 0; i < jobNum; ++i) {
-        if (startTime[i][times[i]] > makeSpan)
-            makeSpan = startTime[i][times[i]];
-    }
+    int makespan = 0;
+    for (int i = 0; i < jobNum; ++i)
+        if (startTime[i][times[i]] > makespan)
+            makespan = startTime[i][times[i]];
+
+    return makespan;
 }

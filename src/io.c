@@ -8,7 +8,7 @@ int *getJob() {
 
     int *times = malloc(jobNum * sizeof(int));
     job = malloc(jobNum * sizeof(JOBPTR));
-    
+
     int num;
     scanf("%d", &num);
     while (num != -1) {
@@ -68,8 +68,8 @@ void output(MACHINEPTR *machine) {
             tmp = tmp->nextJob;
         }
     }
-    printf("\nEnd %d\n", makeSpan);
-    fprintf(fp, "\nEnd %d\n", makeSpan);
+    printf("\nEnd %d\n", minMakespan);
+    fprintf(fp, "\nEnd %d\n", minMakespan);
     fclose(fp);
 }
 

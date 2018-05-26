@@ -42,7 +42,7 @@ int main(void) {
 
             puts("Please wait for the output result...");
             machine = schedule(times);
-            printf("jobNum:%d\nmachineNum:%d\nmakeSpan:%d\n", jobNum, machineNum, makeSpan);
+            printf("jobNum:%d\nmachineNum:%d\nmakeSpan:%d\n", jobNum, machineNum, makespan);
             //output(machine);
             //machine = reSchedule(machine);
             //output(machine);
