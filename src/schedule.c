@@ -5,7 +5,7 @@
 #include <time.h>
 #include "struct.h"
 
-#define ZJQ 666
+#define ZJQ 100+30*jobNum*machineNum
 
 struct graph {
     int point;
@@ -35,8 +35,8 @@ void computeDAGAndStartTime(const int *chromosome, const int *times);
 
 MACHINEPTR *schedule(const int *times) {
 
-    int chromosome[] = {0, 1, 2, 3, 4, 0, 1, 2, 3, 4};
-
+    int chromosome[] = {0, 1, 0, 1, 0, 1, 0, 1, 0, 1};
+    len = 10;
     computeDAGAndStartTime(chromosome, times);
 
     return NULL;
@@ -162,6 +162,7 @@ void computeDAGAndStartTime(const int *chromosome, const int *times) {
         for (int j = 0; j < jobNum; ++j)
             tasksResource[i][j] = -1;
 
+
     struct graph G[jobNum][machineNum];
     for (int i = 0; i < jobNum; ++i) {
         T[i] = 0;
@@ -173,12 +174,11 @@ void computeDAGAndStartTime(const int *chromosome, const int *times) {
         }
     }
 
-
-    for (int i = 0; i < len; ++i) {//对染色体进行遍历及处理
-        JOBPTR tmpPtr = job[0];//寻找工件及工序所用的临时指针
+    for (int i = 0; i < len; ++i, ++T[num]) {//对染色体进行遍历及处理
         num = chromosome[i];//num为工件号
+        JOBPTR tmpPtr = job[num];//寻找工件及工序所用的临时指针
         st[i] = t = T[num];//存入节点对应的工序在其工件内是第几道工序
-        for (int j = 0; j < num; ++j)
+        for (int j = 0; j < t; ++j)
             tmpPtr = tmpPtr->nextMachine;
         int r = tmpPtr->machine;//r为对应工件、对应工序的机器号
         G[num][t].point = i;
@@ -195,8 +195,6 @@ void computeDAGAndStartTime(const int *chromosome, const int *times) {
                             for (int q = 0; G[o][k].ptrB[q] != NULL; q++)
                                 G[o][k].ptrB[q] = &G[num][t];
         //若之前的工件占用的机器与当前nun工件j工序的相同，则将这些节点编号指向当前处理的节点i
-
-        T[num]++;
         //lastTaskJob[num] = i;
         tasksResource[r][num] = i;
         //构图环节完成
@@ -205,7 +203,7 @@ void computeDAGAndStartTime(const int *chromosome, const int *times) {
     for (int i = 0; i < jobNum; ++i)//遍历析取图节点
         for (int j = 0; j < machineNum; ++j) {
             int max = 0;
-            JOBPTR tmpPtr = job[0];
+            JOBPTR tmpPtr = job[i];
             if (!j)
                 startTime[i][j] = 0;
             else {
@@ -213,8 +211,8 @@ void computeDAGAndStartTime(const int *chromosome, const int *times) {
                     tmpPtr = tmpPtr->nextMachine;
 
                 int current = tmpPtr->time;
-                for (int m = 0; m < jobNum; ++m)
-                    for (int n = 0; n < machineNum; ++n)
+                for (int m = 0; m < i; ++m)
+                    for (int n = 0; n < j; ++n)
                         for (int o = 0; G[m][n].ptrB[o] != NULL; ++o)
                             if ((G[m][n].ptrA == &G[i][j] || G[m][n].ptrB[o] == &G[i][j]) && startTime[m][n] > max)
                                 max = startTime[m][n];

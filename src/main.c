@@ -31,7 +31,7 @@ int main(void) {
 
             puts("Please enter overhaul information:");
             getOverhaul();
-            //machine = reSchedule(machine);
+            machine = reSchedule(machine);
             output(machine);
             break;
         case 2:
