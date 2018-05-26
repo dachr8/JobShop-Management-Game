@@ -4,9 +4,9 @@
 
 #define GGG 999
 
-int** initPopulation(*int);
-void crossover(**int,int,int);
-void mutation(**int,int);
+int** initPopulation(int*);
+void crossover(int**,int,int);
+void mutation(int**,int);
 void swap(int*,int*);
 
 void swap(int* a,int* b){
@@ -16,7 +16,7 @@ void swap(int* a,int* b){
     *b = s;
 }
 
-int** initPopulation(*times){
+int** initPopulation(int *times){
     int *p,i,j,k;
     i = 0;
     p = malloc(sizeof(int)*(jobNum*machineNum));    //对工件加工过程进行编码 即初始染色体
