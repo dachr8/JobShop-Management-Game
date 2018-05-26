@@ -2,7 +2,9 @@
 #include <stdlib.h>
 #include <time.h>
 
-int** initPopulation(*JOBPTR);
+#define GGG 999
+
+int** initPopulation(*int);
 void crossover(**int,int,int);
 void mutation(**int,int);
 void swap(int*,int*);
@@ -14,21 +16,20 @@ void swap(int* a,int* b){
     *b = s;
 }
 
-int** initPopulation(*JOBPTR){
+int** initPopulation(*times){
     int *p,i,j,k;
     i = 0;
     p = malloc(sizeof(int)*(jobNum*machineNum));    //对工件加工过程进行编码 即初始染色体
-    for(j = 1;j <= jobNum;j++)            //jobNum 工件数目
-        for(k = 0;k < jobmachinenum;k++)  //jobmachinenum 当前工件所需加工步骤数
+    for(j = 0;j <= jobNum;j++)            //jobNum 工件数目
+        for(k = 0;k < times[j];k++)  //jobmachinenum 当前工件所需加工步骤数
             p[i++] = j;
-    int ps;                               //ps 初始化的种群数量
-    ps = ;
+                               //ps 初始化的种群数量
     int **population;                                 //存储ps条染色体
-    population = malloc(sizeof(p)*ps);
+    population = malloc(sizeof(p)*GGG);
     srand((unsigned)time(NULL));
-    for(i = 0;i < ps;i++){                            //对染色体p进行ps次操作 建立初始种群
-        for(j = 1;j <= p_len;j++){                    //随机打乱基因顺序。p_len是p染色体的长度
-            int random = rand() % p_len;
+    for(i = 0;i < GGG;i++){                            //对染色体p进行GGG次操作 建立初始种群
+        for(j = 1;j <= times[j];j++){                    //随机打乱基因顺序.times[j]是p染色体的长度
+            int random = rand() % times[j];
             swap(&p[j],&p[random]);
         }
         population[i] = p;
@@ -36,20 +37,20 @@ int** initPopulation(*JOBPTR){
     return population;
 }
 
-void crossover(**int population,int a,int b){
-    int random,len,i;
-    random = rand() % (p_len/2);
-    len = (rand() % (p_len/2) +1);
-    for(i = random;i < (random+len-1);i++){
-        swap(population[a].p[i],population[b].p[i]);       //格式？？？
+void crossover(int **population,int a,int b){
+    int random,clen,i;
+    random = rand() % (times[a]/2);
+    clen = (rand() % (times[b]/2) +1);
+    for(i = random;i < (random+clen-1);i++){
+        swap(&population[a][i],&population[b][i]);       //格式？？？
     }
     //计算适应度
 }
 
-void mutation(**int population,int num){
-    int i,j swap;
+void mutation(int **population,int num){
+    int i,j;
     srand((unsigned)time(NULL));
-    i = rand() % p_len;                   //随机选两个位置调换
-    j = rand() % p_len;
+    i = rand() % times[num];                   //随机选两个位置调换
+    j = rand() % times[num];
     swap(population[num].p[i],population[num].p[j]);
 }
