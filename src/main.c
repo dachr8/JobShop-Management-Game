@@ -6,7 +6,7 @@ extern int *getJob();
 
 extern void getOverhaul();
 
-extern MACHINEPTR *schedule(int *times);
+extern MACHINEPTR *schedule(const int *times);
 
 extern MACHINEPTR *reSchedule(MACHINEPTR *machine);
 
@@ -18,7 +18,7 @@ int main(void) {
     int *times = NULL, inputMode;
     MACHINEPTR *machine = NULL;
 
-    puts("IO Mode: 1.Keyboard 2.File");
+    puts("IO Mode: 1.Keyboard 2.File 3.test");
     puts("Please input your input mode: ");
     scanf("%d", &inputMode);
     switch (inputMode) {
@@ -43,6 +43,12 @@ int main(void) {
             machine = schedule(times);
             output(machine);
             machine = reSchedule(machine);
+            output(machine);
+            break;
+        case 3:
+            times = getJob();
+            puts("Please wait for the output result...");
+            machine = schedule(times);
             output(machine);
             break;
         default:
