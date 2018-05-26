@@ -7,12 +7,12 @@
 
 #define ZJQ 666
 
-typedef struct graph {
+struct graph {
     int point;
     int order;
     struct graph *ptrA;
     struct graph *ptrB[21];
-} GRAPH;
+};
 
 typedef struct list {
     int job;
@@ -31,13 +31,13 @@ void crossover(int **population, int a, int b);
 
 void mutation(int **population, const int *times, int num);
 
-void computeDAGAndStartTime(const int *rst, const int *times);
+void computeDAGAndStartTime(const int *chromosome, const int *times);
 
 MACHINEPTR *schedule(const int *times) {
 
-    int rst[] = {0, 1, 2, 3, 4, 0, 1, 2, 3, 4};
+    int chromosome[] = {0, 1, 2, 3, 4, 0, 1, 2, 3, 4};
 
-    computeDAGAndStartTime(rst, times);
+    computeDAGAndStartTime(chromosome, times);
 
     return NULL;
 }
@@ -76,7 +76,9 @@ int **initPopulation(const int *times) {
 
 LISTPTR cross_buildList(int **population, int pick) {                        //交叉-建立有序偶
     LISTPTR headPtr = NULL, curPtr, lastPtr = NULL;
-    int time[jobNum] = {1};
+    int time[jobNum];
+    for (int i = 0; i < jobNum; ++i)
+        time[i] = 1;
     for (int i = 0; i < len; ++i) {
         curPtr = malloc(sizeof(struct list));
         if (curPtr) {
@@ -145,19 +147,13 @@ void mutation(int **population, const int *times, int num) {
     swap(&population[num][rand() % times[num]], &population[num][rand() % times[num]]);
 }
 
-void computeDAGAndStartTime(const int *rst, const int *times) {
+void computeDAGAndStartTime(const int *chromosome, const int *times) {
     int num, t, p;//为计算变量
-    int current = 0;
-    int len = 0;//染色体长度
-    for (len = 0; rst[len] != '\0'; len++);
     int T[jobNum];//构建长度为工件数的全0数组，操作累加器
-    //int lastTaskJob[len];//构造存储每个上一次加入图的工序号，初始化为-1********
     int tasksResource[machineNum][jobNum];//存放上一次使用这台机器的节点相对工序号
     int st[len];//记录每个节点对应的工序在其工件内使第几道工序
-
-    for (int i = 0; i < jobNum; ++i)
-        T[i] = 0;
-
+    int startTime[jobNum][machineNum];//各节点的起始时间，初始化为0
+    //int lastTaskJob[len];//构造存储每个上一次加入图的工序号，初始化为-1********
     /*for(i = 0;i<len;i++)
     {
         lastTaskJob[i] = -1;
@@ -166,33 +162,33 @@ void computeDAGAndStartTime(const int *rst, const int *times) {
         for (int j = 0; j < jobNum; ++j)
             tasksResource[i][j] = -1;
 
-    GRAPH G[jobNum][machineNum];
-    for (int i = 0; i < jobNum; ++i)
+    struct graph G[jobNum][machineNum];
+    for (int i = 0; i < jobNum; ++i) {
+        T[i] = 0;
         for (int j = 0; j < machineNum; ++j) {
+            startTime[i][j] = 0;
             G[i][j].ptrA = NULL;
             for (int k = 0; k < jobNum; ++k)
                 G[i][j].ptrB[k] = NULL;
-
         }
+    }
 
-    for (int i = 0; i < len; i++) {//对染色体进行遍历及处理
-        JOBPTR tempPtr;//寻找工件及工序所用的临时指针
-        int r;//r为对应工件、对应工序的机器号
-        num = rst[i];//num为工件号
-        tempPtr = job[0];
-        t = T[num];
-        st[i] = t;//存入节点对应的工序在其工件内是第几道工序
+
+    for (int i = 0; i < len; ++i) {//对染色体进行遍历及处理
+        JOBPTR tmpPtr = job[0];//寻找工件及工序所用的临时指针
+        num = chromosome[i];//num为工件号
+        st[i] = t = T[num];//存入节点对应的工序在其工件内是第几道工序
         for (int j = 0; j < num; ++j)
-            tempPtr = tempPtr->nextMachine;
-        r = tempPtr->machine;//机器号
+            tmpPtr = tmpPtr->nextMachine;
+        int r = tmpPtr->machine;//r为对应工件、对应工序的机器号
         G[num][t].point = i;
         G[num][t].order = t;
         if (t + 1 == times[num])
             G[num][t].ptrA = NULL;//指向最后节点
-        else if (t > 0)
+        else if (t)
             G[num][t - 1].ptrA = &G[num][t];//若不是num工件的第一道工序，则将前一道工序指向代表当前工序的节点i
-        for (p = 0; p < i; p++)//p为染色体的操作数
-            if (tasksResource[r][rst[p]] > -1)
+        for (p = 0; p < i; ++p)//p为染色体的操作数
+            if (tasksResource[r][chromosome[p]] > -1)
                 for (int o = 0; o < jobNum; ++o)
                     for (int k = 0; k < machineNum; ++k)
                         if (G[o][k].point == p)
@@ -206,30 +202,22 @@ void computeDAGAndStartTime(const int *rst, const int *times) {
         //构图环节完成
     }
 
-    int startTime[jobNum][machineNum];//各节点的起始时间，初始化为0
-    for (int i = 0; i < jobNum; ++i)
-        for (int j = 0; j < machineNum; ++j)
-            startTime[i][j] = 0;
-    int max;
     for (int i = 0; i < jobNum; ++i)//遍历析取图节点
         for (int j = 0; j < machineNum; ++j) {
-            max = 0;
-            JOBPTR tempPtr = job[0];
-            if (j == 0)
+            int max = 0;
+            JOBPTR tmpPtr = job[0];
+            if (!j)
                 startTime[i][j] = 0;
             else {
                 for (int m = 0; m < G[i][j].order; ++m)
-                    tempPtr = tempPtr->nextMachine;
+                    tmpPtr = tmpPtr->nextMachine;
 
-                current = tempPtr->time;
+                int current = tmpPtr->time;
                 for (int m = 0; m < jobNum; ++m)
                     for (int n = 0; n < machineNum; ++n)
                         for (int o = 0; G[m][n].ptrB[o] != NULL; ++o)
-                            if (G[m][n].ptrA == &G[i][j] || G[m][n].ptrB[o] == &G[i][j])
-                                if (startTime[m][n] > max) {
-                                    max = startTime[m][n];
-                                }
-
+                            if ((G[m][n].ptrA == &G[i][j] || G[m][n].ptrB[o] == &G[i][j]) && startTime[m][n] > max)
+                                max = startTime[m][n];
                 startTime[i][j] = max + current;
             }
         }
