@@ -52,5 +52,5 @@ void mutation(int **population,int num){
     srand((unsigned)time(NULL));
     i = rand() % times[num];                   //随机选两个位置调换
     j = rand() % times[num];
-    swap(population[num].p[i],population[num].p[j]);
+    swap(&population[num][i],&population[num][j]);
 }
