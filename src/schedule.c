@@ -62,13 +62,86 @@ int **initPopulation(const int *times) {
     return population;
 }
 
-void crossover(int **population, const int *times, int a, int b) {
-    int random = rand() % (times[a] / 2), clen = (rand() % (times[b] / 2) + 1);
-    for (int i = random; i < (random + clen - 1); ++i) {
-        swap(&population[a][i], &population[b][i]);       //格式？？？
+
+struct list {
+    int job;
+    int order;
+    struct node *nextPtr;
+};
+typedef struct list LIST;
+typedef struct list *LISTPTR;
+
+LISTPTR *cross_buildList(int **population, int pick) {                        //交叉-建立有序偶
+    LISTPTR headPtr, curPtr, lastPtr;
+    headPtr = NULL;
+    int i;
+    int time[jobNum] = {1};
+    for (i = 0; i < len; i++) {
+        curPtr = malloc(sizeof(LIST));
+        if (curPtr != NULL) {
+            curPtr->job = population[pick][i];
+            int a = population[pick][i];
+            curPtr->order = time[a]++;
+            if (headPtr == NULL) {
+                headPtr = curPtr;
+                lastPtr = headPtr;
+                headPtr->nextPtr = NULL;
+            } else {
+                lastPtr->nextPtr = curPtr;
+                lastPtr = curPtr;
+            }
+        }
     }
-    //计算适应度
 }
+
+void cross_insert(LISTPTR insertPtr, LISTPTR forwardPtr, LISTPTR backPtr) {     //交叉-插入部分
+    LISTPTR innextPtr = insertPtr->nextPtr;
+    LISTPTR forPtr = forwardPtr->nextPtr;
+    LISTPTR bkPtr = backPtr->nextPtr;
+    forwardPtr->nextPtr = bkPtr;
+    insertPtr->nextPtr = forPtr;
+    backPtr->nextPtr = innextPtr;
+}
+
+void crossover(int **population, int a, int b) {                   // 交叉主函数
+    LISTPTR aPtr = cross_buildList(population, a);
+    LISTPTR bPtr = cross_buildList(population, b);
+    int rand_a, rand_b, clen, i, j;
+    rand_a = rand() % ((len / 2) + 1);
+    rand_b = rand() % ((len / 2) + 1);
+    clen = (rand() % (len / 2) + 1);
+    LISTPTR forwardPtr, backPtr, insertPtr;                       //找a起始、终止交换的位置 b中插入a的位置
+    forwardPtr = aPtr;
+    for (i = 0; i < rand_a; i++)
+        forwardPtr = forwardPtr->nextPtr;
+    backPtr = forwardPtr;
+    for (i = 0; i < clen + 1; i++)
+        backPtr = backPtr->nextPtr;
+    insertPtr = bPtr;
+    for (i = 0; i < rand_b; i++)
+        insertPtr = insertPtr->nextPtr;
+    cross_insert(insertPtr, forwardPtr, backPtr);               //将a截出的片段差入b中
+    LISTPTR tPtr, fPtr;                                        //找b中与a交换过来的重复的部分 删掉
+    fPtr = bPtr;
+    tPtr = bPtr->nextPtr;
+    for (i = 0; i < clen; i++) {
+        while (tPtr != NULL) {
+            if (tPtr->job == forwardPtr->job && tPtr->order == forwardPtr->order) {
+                fPtr->nextPtr = tPtr->nextPtr;
+                forwardPtr = forwardPtr->nextPtr;
+            }
+            fPtr = fPtr->nextPtr;
+            tPtr = fPtr->nextPtr;
+        }
+        tPtr = bPtr;
+    }
+    int g = ZJQ;                                       //将交叉后的子代放到种群中
+    for (i = 0; i < len; i++) {
+        population[++g][i] = bPtr->job;
+        bPtr = bPtr->nextPtr;
+    }
+}
+
 
 void mutation(int **population, const int *times, int num) {
     srand((unsigned) time(NULL));//随机选两个位置调换
