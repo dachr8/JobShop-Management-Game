@@ -18,11 +18,12 @@ int main(void) {
     int *times = NULL, inputMode;
     MACHINEPTR *machine = NULL;
 
-    puts("IO Mode: 1.Keyboard 2.File 3.test");
+    puts("IO Mode: 1.Keyboard 2.File");
     puts("Please input your input mode: ");
     scanf("%d", &inputMode);
     switch (inputMode) {
         case 1:
+            puts("Please input the data:");
             times = getJob();
             puts("Please wait for the output result...");
             machine = schedule(times);
@@ -30,26 +31,21 @@ int main(void) {
 
             puts("Please enter overhaul information:");
             getOverhaul();
-            machine = reSchedule(machine);
+            //machine = reSchedule(machine);
             output(machine);
             break;
         case 2:
             freopen("input.txt", "r", stdin);
             times = getJob();
-            getOverhaul();
+            //getOverhaul();
             fclose(stdin);
 
             puts("Please wait for the output result...");
             machine = schedule(times);
-            output(machine);
-            machine = reSchedule(machine);
-            output(machine);
-            break;
-        case 3:
-            times = getJob();
-            puts("Please wait for the output result...");
-            machine = schedule(times);
-            output(machine);
+            printf("jobNum:%d\nmachineNum:%d\nmakeSpan:%d\n", jobNum, machineNum, makeSpan);
+            //output(machine);
+            //machine = reSchedule(machine);
+            //output(machine);
             break;
         default:
             puts("Please input your IO mode: ");

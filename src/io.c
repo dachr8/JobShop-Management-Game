@@ -4,19 +4,25 @@
 #include "struct.h"
 
 int *getJob() {
-    scanf("%d %d", &jobNum, &machineNum);
+    scanf("%d%d", &jobNum, &machineNum);
+
     int *times = malloc(jobNum * sizeof(int));
     job = malloc(jobNum * sizeof(JOBPTR));
-
-    int num = 0;
-    while (scanf("%d", &num) && (num != -1)) {
-        JOBPTR tmp = job[num] = malloc(sizeof(struct job));
+    
+    int num;
+    scanf("%d", &num);
+    while (num != -1) {
+        JOBPTR node = job[num] = malloc(sizeof(struct job));
+        JOBPTR tmp;
         times[num] = 0;
-        while (scanf("(%d，%d)", &tmp->time, &tmp->machine) == 2) {
-            tmp = tmp->nextMachine = malloc(sizeof(struct job));
-            times++;
+        while (times[num] < machineNum && scanf(" (%d,%d)", &node->time, &node->machine) == 2) {
+            tmp = node;
+            node = node->nextMachine = malloc(sizeof(struct job));
+            times[num]++;
         }
         tmp->nextMachine = NULL;
+        free(node);
+        scanf("%d", &num);
     }
 
     return times;
