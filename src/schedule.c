@@ -8,31 +8,30 @@ int len, **population;
 
 void swap(int *a, int *b);
 
+void swapPtr(int **a, int **b);
+
 void initPopulation(const int *times);
 
 int rouletteWheelSelection(const int *makespan, int totalMakespan);
 
 int *crossover(const int *a, const int *b);
 
-int computeDAGAndStartTime(const int *chromosome, const int *times);
+int computeDAGAndStartTime(const int *chromosome, const int *times, int mode);
 
 int schedule(const int *times) {
     int makespan[SIZE], totalMakespan = 0;
     initPopulation(times);
     for (int i = 0; i < SIZE; ++i) {
-        makespan[i] = computeDAGAndStartTime(population[i], times);
+        makespan[i] = computeDAGAndStartTime(population[i], times, 0);
         totalMakespan += makespan[i];
-        for (int j = 0; j < len; ++j) {
-            printf("%d", population[i][j]);
-        }
-        printf(" makespan:%d\n", makespan[i]);
-    }/*
+    }
+
     for (int i = 0, flag = 1; (i < SIZE - 1) && flag; ++i) {
         flag = 0;
         for (int j = 0; j < SIZE - 1; ++j)
             if (makespan[j] > makespan[j + 1]) {
                 swap(&makespan[j], &makespan[j + 1]);
-                swap(population[j], population[j + 1]);
+                swapPtr(&population[j], &population[j + 1]);
                 flag = 1;
             }
     }
@@ -45,24 +44,36 @@ int schedule(const int *times) {
         int *child = crossover(population[a], population[b]);
         if (!rand() % 10)
             swap(&child[rand() % len], &child[rand() % len]);
-        int childMakespan = computeDAGAndStartTime(child, times);
+        int childMakespan = computeDAGAndStartTime(child, times, 0);
         for (int j = 0, flag = 1; j < SIZE && flag; ++j)
             if (childMakespan < makespan[j]) {
                 totalMakespan = totalMakespan + childMakespan - makespan[SIZE - 1];
                 for (int k = j; k < SIZE; ++k) {
                     swap(&childMakespan, &makespan[k]);
-                    swap(child, population[k]);
+                    swapPtr(&child, &population[k]);
                 }
                 flag = 0;
             }
         free(child);
     }
+    for (int i = 0; i < SIZE; ++i) {
+        printf("\nmakespan:%d  ", makespan[i]);
+        for (int j = 0; j < len; ++j) {
+            printf("%d", population[i][j]);
+        }
+    }
 
-    return makespan[0];*/
+    return makespan[0];
 }
 
 void swap(int *a, int *b) {
     int t = *a;
+    *a = *b;
+    *b = t;
+}
+
+void swapPtr(int **a, int **b) {
+    int *t = *a;
     *a = *b;
     *b = t;
 }
@@ -93,7 +104,7 @@ void initPopulation(const int *times) {
 }
 
 int rouletteWheelSelection(const int *makespan, int totalMakespan) {
-    double fitness = totalMakespan * rand() / (double) RAND_MAX, total = 0;
+    double fitness = (double) totalMakespan * rand() / RAND_MAX, total = 0;
     for (int i = 0; i < SIZE; ++i) {
         total += (double) makespan[SIZE - i - 1];
         if (total > fitness)
@@ -139,7 +150,7 @@ struct graph {
     struct graph *ptrB[21];
 };
 
-int computeDAGAndStartTime(const int *chromosome, const int *times) {
+int computeDAGAndStartTime(const int *chromosome, const int *times, int mode) {
     int num = 0, t = 0, p = 0, o = 0;//为计算变量
     int T[jobNum];//构建长度为工件数的全0数组，操作累加器
     int tasksResource[machineNum][jobNum];//存放上一次使用这台机器的节点相对工序号
