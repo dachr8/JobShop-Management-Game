@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-#define SIZE (9*jobNum*machineNum)
+#define SIZE (5*jobNum*machineNum)
 
 typedef struct job {
     int machine, time;

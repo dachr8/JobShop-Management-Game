@@ -78,7 +78,7 @@ void output(int makespan) {
     fclose(fp);
 }
 
-void freeAll(JOBPTR *job, MACHINEPTR *machine, OVERHAULPTR overhaul, int *times, int **population) {
+void freeAll(int *times, int **population) {
     for (int i = 0; i < jobNum; ++i) {
         while (job[i]) {
             JOBPTR tmp = job[i];
@@ -87,18 +87,19 @@ void freeAll(JOBPTR *job, MACHINEPTR *machine, OVERHAULPTR overhaul, int *times,
         }
     }
     free(job);
-    for (int i = 0; i < machineNum; ++i)
+    for (int i = 0; i < machineNum; ++i) {
         while (machine[i]) {
-            MACHINEPTR tmp = machine[i];
+            MACHINEPTR tmp1 = machine[i];
             machine[i] = machine[i]->nextJob;
-            free(tmp);
+            free(tmp1);
         }
-    free(machine);
-    while (overhaul) {
-        OVERHAULPTR tmp = overhaul;
-        overhaul = overhaul->nextOverhaul;
-        free(tmp);
+        while (overhaul[i]) {
+            OVERHAULPTR tmp2 = overhaul[i];
+            overhaul[i] = overhaul[i]->nextOverhaul;
+            free(tmp2);
+        }
     }
+    free(machine);
     free(times);
     for (int i = 0; i < SIZE; ++i)
         free(population[i]);

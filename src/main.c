@@ -11,7 +11,7 @@ extern int schedule(const int *times);
 
 extern void output(int makespan);
 
-extern void freeAll(JOBPTR *job, MACHINEPTR *machine, OVERHAULPTR overhaul, int *times, int **population);
+extern void freeAll(int *times, int **population);
 
 extern int *crossover(const int *a, const int *b);
 
@@ -40,7 +40,8 @@ int main(void) {
             times = getJob();
 
             puts("Please wait for the output result...");
-            output(schedule(times));/*
+            schedule(times);
+            /*output(schedule(times));
 
             getOverhaul();
             fclose(stdin);
@@ -52,7 +53,7 @@ int main(void) {
             puts("Please input your IO mode: ");
             scanf("%d", &inputMode);
     }
-    freeAll(job, machine, overhaul, times, population);
+    freeAll(times, population);
 
     return 0;
 }
