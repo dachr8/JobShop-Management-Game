@@ -7,35 +7,21 @@
 
 #define SIZE (5*jobNum*machineNum)
 
-struct graph {
-    int point;
-    int order;
-    struct graph *ptrA;
-    struct graph *ptrB[21];
-};
-
-typedef struct list {
-    int job;
-    int order;
-    struct list *nextPtr;
-} *LISTPTR;
-
 int len;
 
 void swap(int *a, int *b);
 
 int **initPopulation(const int *times);
 
-int *crossover(int **population, int a, int b);
+int *crossover(const int *a, const int *b);
 
 int computeDAGAndStartTime(const int *chromosome, const int *times);
 
-MACHINEPTR *schedule(const int *times) {
+int schedule(const int *times) {
     int **population = initPopulation(times), makespan[SIZE];
     for (int i = 0; i < SIZE; ++i)
         makespan[i] = computeDAGAndStartTime(population[i], times);
-    for (int i = 0, flag = 1; (i < SIZE - 1) && flag; ++i) {
-        flag = 0;
+    for (int i = 0, flag = 1; (i < SIZE - 1) && flag; ++i, flag = 0) {
         for (int j = 0; j < SIZE - 1; ++j)
             if (makespan[j] > makespan[j + 1]) {
                 swap(&makespan[j], &makespan[j + 1]);
@@ -46,7 +32,7 @@ MACHINEPTR *schedule(const int *times) {
 
     for (int i = 0; i < SIZE; ++i) {
         srand((unsigned) time(NULL));
-        int *child = crossover(population, rand() % SIZE, rand() % SIZE);
+        int *child = crossover(population[rand() % len], population[rand() % len]);
         if (!rand() % 10)
             swap(&child[rand() % len], &child[rand() % len]);
         int childMakespan = computeDAGAndStartTime(child, times);
@@ -58,13 +44,13 @@ MACHINEPTR *schedule(const int *times) {
                 }
                 flag = 0;
             }
+        free(child);
     }
-    minMakespan = makespan[0];
 
-    return NULL;
+    return makespan[0];
 }
 
-MACHINEPTR *reSchedule(MACHINEPTR *machine) {
+int reSchedule() {
     return NULL;
 }
 
@@ -94,8 +80,44 @@ int **initPopulation(const int *times) {
     return population;
 }
 
+int *crossover(const int *a, const int *b) {
+    int *child = malloc(sizeof(int) * len), indexA[len] = {0}, indexB[len] = {0};
 
-LISTPTR crossBuildList(int **population, int pick) {                        //交叉-建立有序偶
+    for (int i = 0; i < len; ++i)
+        for (int j = 0; j < i; ++j) {
+            if (a[j] == a[i])
+                ++indexA[i];
+            if (b[j] == b[i])
+                ++indexB[i];
+        }
+
+    int start = rand() % len, end = start + rand() % (len - start) - 1;
+    for (int i = 0, j = 0, flag = 1; i < len; ++i, flag = 1)
+        if (start <= i && i <= end)
+            child[i] = b[i];
+        else
+            for (j = 0; flag; ++j) {
+                flag = 1;
+                for (int k = start; k <= end && flag == 1; ++k)
+                    if (a[i] == b[k] && indexA[i] == indexB[k])
+                        flag = 2;
+                if (flag == 1) {
+                    child[i] = a[j];
+                    flag = 0;
+                }
+            }
+
+    return child;
+}
+
+/*
+@songyiwen
+typedef struct list {
+    int job;
+    int order;
+    struct list *nextPtr;
+} *LISTPTR;
+LISTPTR crossBuildList(int *const *population, int pick) {                        //交叉-建立有序偶
     LISTPTR headPtr = NULL, curPtr, lastPtr = NULL;
     int time[jobNum];
     for (int i = 0; i < jobNum; ++i)
@@ -129,7 +151,7 @@ void crossInsert(LISTPTR insertPtr, LISTPTR forwardPtr, LISTPTR backPtr) {     /
     backPtr->nextPtr = innextPtr;
 }
 
-int *crossover(int **population, int a, int b) {                   // 交叉主函数
+int *crossover(int *const *population, int a, int b) {                   // 交叉主函数
     LISTPTR bPtr = crossBuildList(population, b);
     srand((unsigned) time(NULL));
     int clen = rand() % (len / 2) + 1;
@@ -165,6 +187,14 @@ int *crossover(int **population, int a, int b) {                   // 交叉主�
 
     return NULL;
 }
+*/
+
+struct graph {
+    int point;
+    int order;
+    struct graph *ptrA;
+    struct graph *ptrB[21];
+};
 
 int computeDAGAndStartTime(const int *chromosome, const int *times) {
     int num, t, p;//为计算变量

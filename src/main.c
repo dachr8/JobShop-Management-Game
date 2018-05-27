@@ -6,17 +6,16 @@ extern int *getJob();
 
 extern void getOverhaul();
 
-extern MACHINEPTR *schedule(const int *times);
+extern int schedule(const int *times);
 
-extern MACHINEPTR *reSchedule(MACHINEPTR *machine);
+extern int reSchedule();
 
-extern void output(MACHINEPTR *machine);
+extern void output(int makespan);
 
 extern void freeAll(MACHINEPTR *machine, OVERHAULPTR overhaul, int *times);
 
 int main(void) {
     int *times = NULL, inputMode;
-    MACHINEPTR *machine = NULL;
 
     puts("IO Mode: 1.Keyboard 2.File");
     puts("Please input your input mode: ");
@@ -26,13 +25,11 @@ int main(void) {
             puts("Please input the data:");
             times = getJob();
             puts("Please wait for the output result...");
-            machine = schedule(times);
-            output(machine);
+            output(schedule(times));
 
             puts("Please enter overhaul information:");
             getOverhaul();
-            machine = reSchedule(machine);
-            output(machine);
+            output(reSchedule());
             break;
         case 2:
             freopen("input.txt", "r", stdin);
@@ -41,11 +38,8 @@ int main(void) {
             fclose(stdin);
 
             puts("Please wait for the output result...");
-            machine = schedule(times);
-            printf("jobNum:%d\nmachineNum:%d\nmakeSpan:%d\n", jobNum, machineNum, makespan);
-            //output(machine);
-            //machine = reSchedule(machine);
-            //output(machine);
+            output(schedule(times));
+            //output(reSchedule());
             break;
         default:
             puts("Please input your IO mode: ");
