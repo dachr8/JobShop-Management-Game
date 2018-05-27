@@ -1,6 +1,10 @@
 #ifndef JOBSHOP_MANAGEMENT_GAME_JOBSHOP_H
 #define JOBSHOP_MANAGEMENT_GAME_JOBSHOP_H
 
+#include <stdio.h>
+
+#define SIZE (9*jobNum*machineNum)
+
 typedef struct job {
     int machine, time;
     struct job *nextMachine;

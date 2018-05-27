@@ -1,27 +1,26 @@
 //author songyiwen and aojia
 //co-author dachr
-#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "struct.h"
+#include "jobshop.h"
 
-#define SIZE (5*jobNum*machineNum)
-
-int len;
+int len, **population;
 
 void swap(int *a, int *b);
 
-int **initPopulation(const int *times);
+void initPopulation(const int *times);
 
 int *crossover(const int *a, const int *b);
 
 int computeDAGAndStartTime(const int *chromosome, const int *times);
 
 int schedule(const int *times) {
-    int **population = initPopulation(times), makespan[SIZE];
+    int makespan[SIZE];
+    initPopulation(times);
     for (int i = 0; i < SIZE; ++i)
         makespan[i] = computeDAGAndStartTime(population[i], times);
-    for (int i = 0, flag = 1; (i < SIZE - 1) && flag; ++i, flag = 0) {
+    for (int i = 0, flag = 1; (i < SIZE - 1) && flag; ++i) {
+        flag = 0;
         for (int j = 0; j < SIZE - 1; ++j)
             if (makespan[j] > makespan[j + 1]) {
                 swap(&makespan[j], &makespan[j + 1]);
@@ -50,34 +49,27 @@ int schedule(const int *times) {
     return makespan[0];
 }
 
-int reSchedule() {
-    return NULL;
-}
-
 void swap(int *a, int *b) {
     int t = *a;
     *a = *b;
     *b = t;
 }
 
-int **initPopulation(const int *times) {
+void initPopulation(const int *times) {
     len = 0;
     for (int i = 0; i < jobNum; ++i)
         len += times[i];
-
-    int *p = malloc(sizeof(int) * len);    //对工件加工过程进行编码 即初始染色体
-    for (int i = 0, k = 0; i < jobNum; ++i) //jobNum 工件数目
-        for (int j = 0; j < times[i]; ++j)  //jobmachinenum 当前工件所需加工步骤数
+    //Code the workpiece process to initialize the chromosome
+    int *p = malloc(sizeof(int) * len);
+    for (int i = 0, k = 0; i < jobNum; ++i)
+        for (int j = 0; j < times[i]; ++j)
             p[k++] = i;
-    //ps 初始化的种群数量
-
-    int **population = malloc(sizeof(p) * SIZE);//存储ps条染色体
+    //Perform SIZE operations on chromosomes to establish initial populations
+    population = malloc(sizeof(p) * SIZE);
     srand((unsigned) time(NULL));
-    for (int i = 0; i < SIZE; population[i++] = p)            //对染色体p进行SIZE次操作 建立初始种群
-        for (int j = 0; j < len; ++j)  //随机打乱基因顺序.times[j]是p染色体的长度
+    for (int i = 0; i < SIZE; population[i++] = p)
+        for (int j = 0; j < len; ++j)//Randomly disrupted gene sequence, len is the length of the p chromosome
             swap(&p[j], &p[rand() % len]);
-
-    return population;
 }
 
 int *crossover(const int *a, const int *b) {

@@ -1,7 +1,6 @@
 //author dachr
-#include <stdio.h>
 #include <malloc.h>
-#include "struct.h"
+#include "jobshop.h"
 
 int *getJob() {
     scanf("%d%d", &jobNum, &machineNum);
@@ -72,25 +71,29 @@ void output(int makespan) {
     fclose(fp);
 }
 
-void freeAll(MACHINEPTR *machine, OVERHAULPTR overhaul, int *times) {
+void freeAll(JOBPTR *job, MACHINEPTR *machine, OVERHAULPTR overhaul, int *times, int **population) {
     for (int i = 0; i < jobNum; ++i) {
-        free(&times[i]);
         while (job[i]) {
             JOBPTR tmp = job[i];
             job[i] = job[i]->nextMachine;
             free(tmp);
         }
     }
-    for (int i = 0; i < machineNum; ++i) {
+    free(job);
+    for (int i = 0; i < machineNum; ++i)
         while (machine[i]) {
             MACHINEPTR tmp = machine[i];
             machine[i] = machine[i]->nextJob;
             free(tmp);
         }
-    }
+    free(machine);
     while (overhaul) {
         OVERHAULPTR tmp = overhaul;
         overhaul = overhaul->nextOverhaul;
         free(tmp);
     }
+    free(times);
+    for (int i = 0; i < SIZE; ++i)
+        free(population[i]);
+    free(population);
 }
