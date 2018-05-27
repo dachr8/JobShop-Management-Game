@@ -28,12 +28,19 @@ int *getJob() {
 }
 
 void getOverhaul() {
-    int num = 0;
-    OVERHAULPTR tmp = overhaul = malloc(sizeof(struct overhaul));
+    overhaul = malloc(machineNum * sizeof(OVERHAULPTR));
+    for (int i = 0; i < machineNum; ++i)
+        overhaul[i] = NULL;
+    int num = 0, startTime, machine, time;
     while (num != -1) {
-        while (scanf("%d%d%d", &tmp->startTime, &overhaul->machine, &overhaul->time) == 3)
-            tmp = tmp->nextOverhaul = malloc(sizeof(struct overhaul));
-        scanf("%d", &num);
+        while (scanf("%d%d%d", &startTime, &machine, &time) == 3) {
+            overhaul[machine] = malloc(sizeof(struct overhaul));
+            overhaul[machine]->startTime = startTime;
+            overhaul[machine]->time = time;
+            overhaul[machine]->nextOverhaul = NULL;
+        }
+        if (!scanf("%d", &num))
+            return;
     }
 }
 

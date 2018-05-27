@@ -73,8 +73,9 @@ void initPopulation(const int *times) {
 }
 
 int *crossover(const int *a, const int *b) {
-    int *child = malloc(sizeof(int) * len), indexA[len] = {0}, indexB[len] = {0};
-
+    int *child = malloc(sizeof(int) * len), indexA[len], indexB[len];
+    for (int i = 0; i < len; ++i)
+        indexA[i] = indexB[i] = 0;
     for (int i = 0; i < len; ++i)
         for (int j = 0; j < i; ++j) {
             if (a[j] == a[i])
@@ -83,15 +84,15 @@ int *crossover(const int *a, const int *b) {
                 ++indexB[i];
         }
 
-    int start = rand() % len, end = start + rand() % (len - start) - 1;
-    for (int i = 0, j = 0, flag = 1; i < len; ++i, flag = 1)
+    int start = rand() % len, end = start + rand() % (len - start);
+    for (int i = 0, j = 0; i < len; ++i)
         if (start <= i && i <= end)
             child[i] = b[i];
         else
-            for (j = 0; flag; ++j) {
+            for (int flag = 1; flag; ++j) {
                 flag = 1;
                 for (int k = start; k <= end && flag == 1; ++k)
-                    if (a[i] == b[k] && indexA[i] == indexB[k])
+                    if (a[j] == b[k] && indexA[j] == indexB[k])
                         flag = 2;
                 if (flag == 1) {
                     child[i] = a[j];
@@ -101,85 +102,6 @@ int *crossover(const int *a, const int *b) {
 
     return child;
 }
-
-/*
-@songyiwen
-typedef struct list {
-    int job;
-    int order;
-    struct list *nextPtr;
-} *LISTPTR;
-LISTPTR crossBuildList(int *const *population, int pick) {                        //交叉-建立有序偶
-    LISTPTR headPtr = NULL, curPtr, lastPtr = NULL;
-    int time[jobNum];
-    for (int i = 0; i < jobNum; ++i)
-        time[i] = 1;
-    for (int i = 0; i < len; ++i) {
-        curPtr = malloc(sizeof(struct list));
-        if (curPtr) {
-            curPtr->job = population[pick][i];
-            int a = population[pick][i];
-            curPtr->order = time[a]++;
-            if (!headPtr) {
-                headPtr = curPtr;
-                lastPtr = headPtr;
-                headPtr->nextPtr = NULL;
-            } else {
-                lastPtr->nextPtr = curPtr;
-                lastPtr = curPtr;
-            }
-        }
-    }
-
-    return headPtr;
-}
-
-void crossInsert(LISTPTR insertPtr, LISTPTR forwardPtr, LISTPTR backPtr) {     //交叉-插入部分
-    LISTPTR innextPtr = insertPtr->nextPtr;
-    LISTPTR forPtr = forwardPtr->nextPtr;
-    LISTPTR bkPtr = backPtr->nextPtr;
-    forwardPtr->nextPtr = bkPtr;
-    insertPtr->nextPtr = forPtr;
-    backPtr->nextPtr = innextPtr;
-}
-
-int *crossover(int *const *population, int a, int b) {                   // 交叉主函数
-    LISTPTR bPtr = crossBuildList(population, b);
-    srand((unsigned) time(NULL));
-    int clen = rand() % (len / 2) + 1;
-
-    LISTPTR forwardPtr = crossBuildList(population, a);                       //找a起始、终止交换的位置 b中插入a的位置
-    for (int i = 0; i < rand() % ((len / 2) + 1); ++i)
-        forwardPtr = forwardPtr->nextPtr;
-    LISTPTR backPtr = forwardPtr;
-    for (int i = 0; i < clen + 1; ++i)
-        backPtr = backPtr->nextPtr;
-    LISTPTR insertPtr = bPtr;
-    for (int i = 0; i < rand() % ((len / 2) + 1); ++i)
-        insertPtr = insertPtr->nextPtr;
-
-    crossInsert(insertPtr, forwardPtr, backPtr);               //将a截出的片段差入b中
-
-    LISTPTR tPtr = bPtr->nextPtr, fPtr = bPtr;
-    for (int i = 0; i < clen; ++i) {
-        while (tPtr) {
-            if (tPtr->job == forwardPtr->job && tPtr->order == forwardPtr->order) {
-                fPtr->nextPtr = tPtr->nextPtr;
-                forwardPtr = forwardPtr->nextPtr;
-            }
-            fPtr = fPtr->nextPtr;
-            tPtr = fPtr->nextPtr;
-        }
-        tPtr = bPtr;
-    }
-    for (int i = 0, g = SIZE; i < len; ++i) {//将交叉后的子代放到种群中
-        population[++g][i] = bPtr->job;
-        bPtr = bPtr->nextPtr;
-    }
-
-    return NULL;
-}
-*/
 
 struct graph {
     int point;
@@ -202,7 +124,6 @@ int computeDAGAndStartTime(const int *chromosome, const int *times) {
     for (int i = 0; i < machineNum; ++i)
         for (int j = 0; j < jobNum; ++j)
             tasksResource[i][j] = -1;
-
 
     struct graph G[jobNum][machineNum];
     for (int i = 0; i < jobNum; ++i) {

@@ -16,13 +16,13 @@ typedef struct machine {
 } *MACHINEPTR;
 
 typedef struct overhaul {
-    int machine, startTime, time;
+    int startTime, time;
     struct overhaul *nextOverhaul;
 } *OVERHAULPTR;
 
 int jobNum, machineNum;
 JOBPTR *job;
 MACHINEPTR *machine;
-OVERHAULPTR overhaul;
+OVERHAULPTR *overhaul;
 
 #endif //JOBSHOP_MANAGEMENT_GAME_JOBSHOP_H

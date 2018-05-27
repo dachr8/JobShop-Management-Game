@@ -11,8 +11,9 @@ extern int schedule(const int *times);
 
 extern void output(int makespan);
 
-extern void freeAll(JOBPTR *job, MACHINEPTR *machine, OVERHAULPTR overhaul, int *times, int **population
-);
+extern void freeAll(JOBPTR *job, MACHINEPTR *machine, OVERHAULPTR overhaul, int *times, int **population);
+
+extern int *crossover(const int *a, const int *b);
 
 int main(void) {
     int *times = NULL, inputMode;
