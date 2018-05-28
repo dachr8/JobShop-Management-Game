@@ -41,13 +41,13 @@ int main(void) {
 
             puts("Please wait for the output result...");
             schedule(times);
-            /*output(schedule(times));
+            output(schedule(times));
 
-            getOverhaul();
+            //getOverhaul();
             fclose(stdin);
 
             puts("Please wait for the output result...");
-            output(schedule(times));*/
+            //output(schedule(times));
             break;
         default:
             puts("Please input your IO mode: ");

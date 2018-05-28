@@ -21,47 +21,54 @@ int computeDAGAndStartTime(const int *chromosome, const int *times, int mode);
 int schedule(const int *times) {
     int makespan[SIZE], totalMakespan = 0;
     initPopulation(times);
-    for (int i = 0; i < SIZE; ++i) {
-        makespan[i] = computeDAGAndStartTime(population[i], times, 0);
-        totalMakespan += makespan[i];
-    }
 
-    for (int i = 0, flag = 1; (i < SIZE - 1) && flag; ++i) {
-        flag = 0;
-        for (int j = 0; j < SIZE - 1; ++j)
-            if (makespan[j] > makespan[j + 1]) {
-                swap(&makespan[j], &makespan[j + 1]);
-                swapPtr(&population[j], &population[j + 1]);
-                flag = 1;
-            }
-    }
 
     for (int i = 0; i < SIZE; ++i) {
         srand((unsigned) time(NULL));
-        int a = rouletteWheelSelection(makespan, totalMakespan), b = rouletteWheelSelection(makespan, totalMakespan);
-        while (a == b)
-            b = rouletteWheelSelection(makespan, totalMakespan);
-        int *child = crossover(population[a], population[b]);
-        if (!rand() % 10)
-            swap(&child[rand() % len], &child[rand() % len]);
-        int childMakespan = computeDAGAndStartTime(child, times, 0);
-        for (int j = 0, flag = 1; j < SIZE && flag; ++j)
-            if (childMakespan < makespan[j]) {
-                totalMakespan = totalMakespan + childMakespan - makespan[SIZE - 1];
-                for (int k = j; k < SIZE; ++k) {
-                    swap(&childMakespan, &makespan[k]);
-                    swapPtr(&child, &population[k]);
-                }
-                flag = 0;
+
+        for (int j = 0; j < SIZE / 2; j++)
+            swapPtr(&population[j], &population[rand() % (SIZE / 2)]);
+
+        for (int j = 0; j < SIZE / 4; ++j) {
+            if (rand() % 10 < 7) {
+                free(population[SIZE / 2 + j]);
+                population[SIZE / 2 + j] = crossover(population[j], population[j + SIZE / 4]);
+                free(population[3 * SIZE / 4 + j]);
+                population[3 * SIZE / 4 + j] = crossover(population[j + SIZE / 4], population[j]);
+                if (rand() % 10 < 1)
+                    swap(&population[SIZE / 2 + j][rand() % len], &population[SIZE / 2 + j][rand() % len]);
+                if (rand() % 10 < 1)
+                    swap(&population[3 * SIZE / 4 + j][rand() % len], &population[3 * SIZE / 4 + j][rand() % len]);
             }
-        free(child);
-    }
-    for (int i = 0; i < SIZE; ++i) {
-        printf("\nmakespan:%d  ", makespan[i]);
-        for (int j = 0; j < len; ++j) {
-            printf("%d", population[i][j]);
+        }
+
+        for (int j = 0; j < SIZE; ++j) {
+            makespan[j] = computeDAGAndStartTime(population[j], times, 0);
+            totalMakespan += makespan[j];
+        }
+
+        for (int j = 0, flag = 1; (j < SIZE - 1) && flag; ++j) {
+            flag = 0;
+            for (int k = 0; k < SIZE - 1; ++k)
+                if (makespan[k] >= makespan[k + 1]) {
+                    swap(&makespan[k], &makespan[k + 1]);
+                    swapPtr(&population[k], &population[k + 1]);
+                    flag = 1;
+                }
         }
     }
+
+    computeDAGAndStartTime(population[0], times, 1);
+/*
+    for (int k = 0; k < SIZE; ++k) {
+        printf("\nmakespan:%d  ", makespan[k]);
+        for (int j = 0; j < len; ++j) {
+            printf("%d", population[k][j]);
+        }
+    }
+    putchar('\n');
+    machine = NULL;
+*/
 
     return makespan[0];
 }
@@ -124,18 +131,18 @@ int *crossover(const int *a, const int *b) {
                 ++indexB[i];
         }
 
-    int start = rand() % len, end = start + rand() % (len - start);
+    int startA = rand() % len, endA = startA + rand() % (len - startA), posB = rand() % (len + startA - endA);
     for (int i = 0, j = 0; i < len; ++i)
-        if (start <= i && i <= end)
-            child[i] = b[i];
+        if (posB <= i && i <= posB + endA - startA)
+            child[i] = a[startA + i - posB];
         else
             for (int flag = 1; flag; ++j) {
                 flag = 1;
-                for (int k = start; k <= end && flag == 1; ++k)
-                    if (a[j] == b[k] && indexA[j] == indexB[k])
+                for (int k = startA; k <= endA && flag == 1; ++k)
+                    if (a[k] == b[j] && indexA[k] == indexB[j])
                         flag = 2;
                 if (flag == 1) {
-                    child[i] = a[j];
+                    child[i] = b[j];
                     flag = 0;
                 }
             }
@@ -146,8 +153,9 @@ int *crossover(const int *a, const int *b) {
 struct graph {
     int point;
     int machine;
+    int tmpTime;
     struct graph *ptrA;
-    struct graph *ptrB[21];
+    struct graph *ptrB[15];
 };
 
 int computeDAGAndStartTime(const int *chromosome, const int *times, int mode) {
@@ -159,17 +167,20 @@ int computeDAGAndStartTime(const int *chromosome, const int *times, int mode) {
         for (int j = 0; j < jobNum; ++j)
             tasksResource[i][j] = -1;
     struct graph G[jobNum][machineNum];
+
     for (int i = 0; i < jobNum; ++i) {
         T[i] = 0;
         for (int j = 0; j < machineNum; ++j) {
             startTime[i][j] = 0;
             G[i][j].point = 0;
+            G[i][j].tmpTime = 0;
             G[i][j].machine = 0;
             G[i][j].ptrA = NULL;
             for (int k = 0; k < 21; ++k)
                 G[i][j].ptrB[k] = NULL;
         }
     }
+
     for (int i = 0; i < len; ++i, ++T[num]) {//对染色体进行遍历及处理
         num = chromosome[i];//num为工件号
         int flag[jobNum];
@@ -180,6 +191,7 @@ int computeDAGAndStartTime(const int *chromosome, const int *times, int mode) {
         int r = tmpPtr->machine;//r为对应工件、对应工序的机器号
         G[num][t].point = i;
         G[num][t].machine = r;
+
         if (t == times[num])
             G[num][t].ptrA = NULL;//指向最后节点
         else if (t)
@@ -196,20 +208,22 @@ int computeDAGAndStartTime(const int *chromosome, const int *times, int mode) {
     }//构图环节完成
 
     int current = 0, max = 0;
-    for (int i = 0; i < jobNum; ++i) //遍历析取图节点,i代表工件数
+    for (int i = 0; i < jobNum; ++i) { //遍历析取图节点,i代表工件数
         for (int j = 0; j < machineNum; ++j) //j代表工序数
         {
             JOBPTR tmpPtr = job[i];
             for (int m = 0; m < j; ++m)
                 tmpPtr = tmpPtr->nextMachine;
             current = tmpPtr->time;
+            G[i][j].tmpTime = current;
+
             max = 0;
             for (int m = 0; m < jobNum; ++m)
                 for (int n = 0; n < machineNum; ++n) {
-                    if (G[m][n].ptrA == &G[i][j] && startTime[m][n] > max)
+                    if ((G[m][n].ptrA == &G[i][j]) && startTime[m][n] > max)
                         max = startTime[m][n];
                     else
-                        for (o = 0; o < 21; ++o)
+                        for (o = 0; o < jobNum; ++o)
                             if ((G[m][n].ptrB[o] == &G[i][j]) && startTime[m][n] > max) {
                                 max = startTime[m][n];
                                 break;
@@ -217,10 +231,35 @@ int computeDAGAndStartTime(const int *chromosome, const int *times, int mode) {
                 }
             startTime[i][j] = max + current;
         }
+    }
     int makespan = 0;
     for (int i = 0; i < jobNum; ++i)
         if (startTime[i][times[i] - 1] > makespan)
             makespan = startTime[i][times[i] - 1];
-    return makespan;
 
+    if (mode) {
+        machine = malloc(machineNum * sizeof(MACHINEPTR));
+        for (int mach = 0; mach < machineNum; ++mach) {
+            MACHINEPTR node = machine[mach] = malloc(sizeof(struct machine)), tmp;
+
+            for (int i = 0; i < len; ++i)
+                for (int m = 0, flag = 1; m < jobNum && flag; ++m)
+                    for (int n = 0; n < machineNum && flag; ++n)
+                        if (G[m][n].point == i && G[m][n].machine == mach) {
+                            node->job = m;
+                            node->order = n + 1;
+                            node->endTime = startTime[m][n];
+                            node->startTime = startTime[m][n] - G[m][n].tmpTime;
+                            tmp = node;
+                            node = node->nextJob = malloc(sizeof(struct machine));
+                            flag = 0;
+                        }
+            tmp->nextJob = NULL;
+            free(node);
+        }
+    }
+
+    return makespan;
 }
+
+

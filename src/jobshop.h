@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-#define SIZE (5*jobNum*machineNum)
+#define SIZE (4*jobNum*machineNum)
 
 typedef struct job {
     int machine, time;
@@ -11,7 +11,7 @@ typedef struct job {
 } *JOBPTR;
 
 typedef struct machine {
-    int job, startTime, endTime;
+    int job, order, startTime, endTime;
     struct machine *nextJob;
 } *MACHINEPTR;
 
