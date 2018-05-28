@@ -229,9 +229,8 @@ int computeDAGAndStartTime(const int *chromosome, const int *times, int mode) {
                     if (overhaul) {
                         OVERHAULPTR tmp = overhaul[n];
                         while (tmp) {
-                            if (tmp->startTime > max && tmp->endTime < max ||
-                                tmp->startTime > startTime[i][n] && tmp->endTime < startTime[i][n] ||
-                                max > tmp->startTime && startTime[m][n] < tmp->startTime)
+                            if (tmp->startTime < max && tmp->endTime > max ||
+                                tmp->startTime > max && tmp->startTime < startTime[i][n])
                                 max = tmp->endTime;
                             tmp = tmp->nextOverhaul;
                         }
