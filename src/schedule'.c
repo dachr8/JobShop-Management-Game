@@ -207,29 +207,31 @@ int computeDAGAndStartTime(const int *chromosome, const int *times) {
         tasksResource[r][num] = t;
     }//构图环节完成
 
-    int current = 0, max = 0;
-    for (int i = 0; i < jobNum; ++i) { //遍历析取图节点,i代表工件数
-        for (int j = 0; j < machineNum; ++j) //j代表工序数
-        {
-            JOBPTR tmpPtr = job[i];
-            for (int m = 0; m < j; ++m)
-                tmpPtr = tmpPtr->nextMachine;
-            current = tmpPtr->time;
-            G[i][j].tmpTime = current;
-
-            max = 0;
-            for (int m = 0; m < jobNum; ++m)
-                for (int n = 0; n < machineNum; ++n) {
-                    if ((G[m][n].ptrA == &G[i][j]) && startTime[m][n] > max)
-                        max = startTime[m][n];
-                    else
-                        for (o = 0; o < 21; ++o)
-                            if ((G[m][n].ptrB[o] == &G[i][j]) && startTime[m][n] > max) {
-                                max = startTime[m][n];
-                                break;
-                            }
+   int current = 0,max = 0;
+    for(int i = 0;i<len;++i){
+        for(int m = 0;m<jobNum;++m){
+            for(int n = 0;n<machineNum;++n){
+                if(G[m][n].point == i){
+                    JOBPTR tmpPtr = job[m];
+                    for (int k = 0; k < n; ++k)
+                        tmpPtr = tmpPtr->nextMachine;
+                    current = tmpPtr->time;
+                    G[m][n].tmpTime = current;
+                    max = 0;
+                    for (p = 0; p < jobNum; ++p)
+                        for (int q = 0; q < machineNum; ++q) {
+                            if ((G[p][q].ptrA == &G[m][n]) && startTime[p][q] > max)
+                                max = startTime[p][q];
+                            else
+                                for (o = 0; o < 21; ++o)
+                                    if ((G[p][q].ptrB[o] == &G[m][n]) && startTime[p][q] > max) {
+                                        max = startTime[p][q];
+                                        break;
+                                    }
+                        }
+                    startTime[m][n] = max + current;
                 }
-            startTime[i][j] = max + current;
+            }
         }
     }
     int makespan = 0;
