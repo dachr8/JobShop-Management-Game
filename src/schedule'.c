@@ -247,7 +247,7 @@ int computeDAGAndStartTime(const int *chromosome, const int *times) {
                         currentM->job = m;
                         currentM->order = n;
                         currentM->endTime = startTime[m][n];
-                        currentM->tmpTime = G[m][n].tmpTime;
+                        currentM->startTime = startTime[m][n] - G[m][n].tmpTime;
                     }
                 }
             }
