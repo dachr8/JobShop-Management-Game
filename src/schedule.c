@@ -209,39 +209,38 @@ int computeDAGAndStartTime(const int *chromosome, const int *times, int mode) {
         tasksResource[r][num] = t;
     }//构图环节完成
 
-    for (int i = 0; i < jobNum; ++i) { //遍历析取图节点,i代表工件数
-        for (int j = 0, max = 0; j < machineNum; ++j) //j代表工序数
-        {
-            JOBPTR tmpPtr = job[i];
-            for (int m = 0; m < j; ++m)
-                tmpPtr = tmpPtr->nextMachine;
-            G[i][j].tmpTime = tmpPtr->time;
-
-            for (int m = 0; m < jobNum; ++m)
-                for (int n = 0; n < machineNum; ++n)
-                    if ((G[m][n].ptrA == &G[i][j]) && startTime[m][n] > max)
-                        max = startTime[m][n];
-                    else
-                        for (int o = 0, flag = 1; o < jobNum && flag; ++o)
-                            if ((G[m][n].ptrB[o] == &G[i][j]) && startTime[m][n] > max) {
-                                max = startTime[m][n];
-                                flag = 0;
+    for (int i = 0; i < len; ++i)
+        for (int m = 0; m < jobNum; ++m)
+            for (int n = 0, max = 0; n < machineNum; ++n)
+                if (G[m][n].point == i) {
+                    JOBPTR tmpPtr = job[m];
+                    for (int k = 0; k < n; ++k)
+                        tmpPtr = tmpPtr->nextMachine;
+                    G[m][n].tmpTime = tmpPtr->time;
+                    max = 0;
+                    for (int p = 0; p < jobNum; ++p)
+                        for (int q = 0; q < machineNum; ++q) {
+                            if ((G[p][q].ptrA == &G[m][n]) && startTime[p][q] > max)
+                                max = startTime[p][q];
+                            else
+                                for (int o = 0; o < 21; ++o)
+                                    if ((G[p][q].ptrB[o] == &G[m][n]) && startTime[p][q] > max) {
+                                        max = startTime[p][q];
+                                        break;
+                                    }
+                        }
+                    if (overhaul)
+                        if (overhaul[n]) {
+                            OVERHAULPTR tmp = overhaul[n];
+                            while (tmp) {
+                                if (tmp->startTime > max && tmp->startTime < max ||
+                                    tmp->endTime > startTime[i][n] && tmp->endTime < startTime[i][n])
+                                    max = tmp->endTime;
+                                tmp = tmp->nextOverhaul;
                             }
-
-            if (overhaul)
-                if (overhaul[j]) {
-                    OVERHAULPTR tmp = overhaul[j];
-                    while (tmp) {
-                        if (tmp->startTime > max && tmp->startTime < max ||
-                            tmp->endTime > startTime[i][j] && tmp->endTime < startTime[i][j])
-                            max = tmp->endTime;
-                        tmp = tmp->nextOverhaul;
-                    }
+                        }
+                    startTime[m][n] = max +G[m][n].tmpTime;
                 }
-
-            startTime[i][j] = max + G[i][j].tmpTime;
-        }
-    }
 
     int makespan = 0;
     for (int i = 0; i < jobNum; ++i)

@@ -17,6 +17,7 @@ extern int *crossover(const int *a, const int *b);
 
 int main(void) {
     int *times = NULL, inputMode;
+    overhaul = NULL;
 
     puts("IO Mode: 1.Keyboard 2.File");
     puts("Please input your input mode: ");
@@ -36,14 +37,14 @@ int main(void) {
             output(schedule(times));
             break;
         case 2:
-            freopen("input.txt", "r", stdin);
+            freopen("input-la01.txt", "r", stdin);
             times = getJob();
 
             puts("Please wait for the output result...");
             schedule(times);
             output(schedule(times));
 
-            getOverhaul();
+            //getOverhaul();
             fclose(stdin);
 
             puts("Please wait for the output result...");

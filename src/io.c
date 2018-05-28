@@ -52,7 +52,6 @@ void output(int makespan) {
         OVERHAULPTR tmp2 = NULL;
         if (overhaul)
             tmp2 = overhaul[i];
-
         while (tmp2) {
             int flag = 1;
             while (tmp2 && flag)
@@ -89,11 +88,12 @@ void freeAll(int *times, int **population) {
             machine[i] = machine[i]->nextJob;
             free(tmp1);
         }
-        while (overhaul[i]) {
-            OVERHAULPTR tmp2 = overhaul[i];
-            overhaul[i] = overhaul[i]->nextOverhaul;
-            free(tmp2);
-        }
+        if (overhaul)
+            while (overhaul[i]) {
+                OVERHAULPTR tmp2 = overhaul[i];
+                overhaul[i] = overhaul[i]->nextOverhaul;
+                free(tmp2);
+            }
     }
     free(machine);
     free(times);
