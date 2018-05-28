@@ -239,20 +239,20 @@ int computeDAGAndStartTime(const int *chromosome, const int *times) {
 
     MACHINEPTR currentM;
     for(int mach = 0;mach<machineNum;++mach){
-        currentM = M[mach];
-        for(int i = 0;i<len;++i){
-            for(int m = 0;m<jobNum;++m){
-                for(int n = 0;n<machineNum;++n){
-                    if(G[m][n].point == i && G[m][n].machine == mach){
-                        currentM->job = m;
-                        currentM->order = n;
-                        currentM->endTime = startTime[m][n];
-                        currentM->startTime = startTime[m][n] - G[m][n].tmpTime;
+            currentM = M[mach];
+            for(int i = 0;i<len;++i){
+                for(int m = 0;m<jobNum;++m){
+                    for(int n = 0;n<machineNum;++n){
+                        if(G[m][n].point == i && G[m][n].machine == mach){
+                            currentM->job = m;
+                            currentM->order = n;
+                            currentM->endTime = startTime[m][n];
+                            currentM->startTime = startTime[m][n] - G[m][n].tmpTime;
+                        }
                     }
+                    currentM = currentM->nextJob;
                 }
-                currentM = currentM->nextJob;
             }
-        }
     }
 
     return makespan;
