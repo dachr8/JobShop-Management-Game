@@ -43,7 +43,7 @@ int main(void) {
             schedule(times);
             output(schedule(times));
 
-            //getOverhaul();
+            getOverhaul();
             fclose(stdin);
 
             puts("Please wait for the output result...");

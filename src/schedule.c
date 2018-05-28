@@ -159,7 +159,6 @@ struct graph {
 };
 
 int computeDAGAndStartTime(const int *chromosome, const int *times, int mode) {
-    int num = 0, t = 0, p = 0, o = 0;//为计算变量
     int T[jobNum];//构建长度为工件数的全0数组，操作累加器
     int tasksResource[machineNum][jobNum];//存放上一次使用这台机器的节点相对工序号
     int startTime[jobNum][machineNum];//各节点的起始时间，初始化为0
@@ -181,61 +180,72 @@ int computeDAGAndStartTime(const int *chromosome, const int *times, int mode) {
         }
     }
 
-    for (int i = 0; i < len; ++i, ++T[num]) {//对染色体进行遍历及处理
+    for (int i = 0, t = 0, num, flag[jobNum]; i < len; ++i, ++T[num]) {//对染色体进行遍历及处理
         num = chromosome[i];//num为工件号
-        int flag[jobNum];
         JOBPTR tmpPtr = job[num];//寻找工件及工序所用的临时指针
         t = T[num];
+
         for (int j = 0; j < t; j++)
             tmpPtr = tmpPtr->nextMachine;
         int r = tmpPtr->machine;//r为对应工件、对应工序的机器号
+
         G[num][t].point = i;
         G[num][t].machine = r;
 
-        if (t == times[num])
+        if (t < times[num] - 1)
+            G[num][t].ptrA = &G[num][t + 1];//若不是num工件的最后一道工序，则将当前工序指向后一道工序的节点i
+        else
             G[num][t].ptrA = NULL;//指向最后节点
-        else if (t)
-            G[num][t - 1].ptrA = &G[num][t];//若不是num工件的第一道工序，则将前一道工序指向代表当前工序的节点i
-        for (p = 0; p < jobNum; p++)
+
+
+        for (int p = 0; p < jobNum; p++)
             flag[p] = 1;
-        for (p = 0; p < i && flag[chromosome[p]]; ++p)//p为染色体的操作数
+        for (int p = 0, o = 0; p < i && flag[chromosome[p]]; ++p)//p为染色体的操作数
             if (tasksResource[r][chromosome[p]] > -1) {
-                for (o = 0; G[chromosome[p]][tasksResource[r][chromosome[p]]].ptrB[o] != NULL; ++o);
+                for (o = 0; G[chromosome[p]][tasksResource[r][chromosome[p]]].ptrB[o]; ++o);
                 G[chromosome[p]][tasksResource[r][chromosome[p]]].ptrB[o] = &G[num][t];
                 flag[chromosome[p]] = 0;
             }//若之前的工件占用的机器与当前nun工件j工序的相同，则将这些节点编号指向当前处理的节点i
         tasksResource[r][num] = t;
     }//构图环节完成
 
-    int current = 0, max = 0;
     for (int i = 0; i < jobNum; ++i) { //遍历析取图节点,i代表工件数
-        for (int j = 0; j < machineNum; ++j) //j代表工序数
+        for (int j = 0, max = 0; j < machineNum; ++j) //j代表工序数
         {
             JOBPTR tmpPtr = job[i];
             for (int m = 0; m < j; ++m)
                 tmpPtr = tmpPtr->nextMachine;
-            current = tmpPtr->time;
-            G[i][j].tmpTime = current;
+            G[i][j].tmpTime = tmpPtr->time;
 
-            max = 0;
             for (int m = 0; m < jobNum; ++m)
-                for (int n = 0; n < machineNum; ++n) {
+                for (int n = 0; n < machineNum; ++n)
                     if ((G[m][n].ptrA == &G[i][j]) && startTime[m][n] > max)
                         max = startTime[m][n];
                     else
-                        for (o = 0; o < jobNum; ++o)
+                        for (int o = 0, flag = 1; o < jobNum && flag; ++o)
                             if ((G[m][n].ptrB[o] == &G[i][j]) && startTime[m][n] > max) {
                                 max = startTime[m][n];
-                                break;
+                                flag = 0;
                             }
+
+            if (overhaul)
+                if (overhaul[j]) {
+                    OVERHAULPTR tmp = overhaul[j];
+                    while (tmp) {
+                        if (tmp->startTime > max && tmp->startTime < max ||
+                            tmp->endTime > startTime[i][j] && tmp->endTime < startTime[i][j])
+                            max = tmp->endTime;
+                        tmp = tmp->nextOverhaul;
+                    }
                 }
-            startTime[i][j] = max + current;
+
+            startTime[i][j] = max + G[i][j].tmpTime;
         }
     }
+
     int makespan = 0;
     for (int i = 0; i < jobNum; ++i)
-        if (startTime[i][times[i] - 1] > makespan)
-            makespan = startTime[i][times[i] - 1];
+        makespan = (startTime[i][times[i] - 1] > makespan) ? startTime[i][times[i] - 1] : makespan;
 
     if (mode) {
         machine = malloc(machineNum * sizeof(MACHINEPTR));

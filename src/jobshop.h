@@ -16,7 +16,7 @@ typedef struct machine {
 } *MACHINEPTR;
 
 typedef struct overhaul {
-    int startTime, time;
+    int startTime, endTime;
     struct overhaul *nextOverhaul;
 } *OVERHAULPTR;
 
