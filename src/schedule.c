@@ -24,12 +24,12 @@ int schedule(const int *times) {
 
 
     for (int i = 0; i < SIZE; ++i) {
-        srand((unsigned) time(NULL));
 
         for (int j = 0; j < SIZE / 2; j++)
             swapPtr(&population[j], &population[rand() % (SIZE / 2)]);
 
         for (int j = 0; j < SIZE / 4; ++j) {
+            srand((unsigned) time(NULL));
             if (rand() % 10 < 7) {
                 free(population[SIZE / 2 + j]);
                 population[SIZE / 2 + j] = crossover(population[j], population[j + SIZE / 4]);
@@ -59,17 +59,14 @@ int schedule(const int *times) {
     }
 
     computeDAGAndStartTime(population[0], times, 1);
-/*
-    for (int k = 0; k < SIZE; ++k) {
-        printf("\nmakespan:%d  ", makespan[k]);
-        for (int j = 0; j < len; ++j) {
-            printf("%d", population[k][j]);
-        }
-    }
-    putchar('\n');
-    machine = NULL;
-*/
 
+/*
+    for (int a = 0; a < 10; ++a) {
+        printf("\nmakespan:%d  ", makespan[a]);
+        for (int b = 0; b < len; ++b)
+            printf("%d", population[a][b]);
+    }
+*/
     return makespan[0];
 }
 
@@ -223,23 +220,23 @@ int computeDAGAndStartTime(const int *chromosome, const int *times, int mode) {
                             if ((G[p][q].ptrA == &G[m][n]) && startTime[p][q] > max)
                                 max = startTime[p][q];
                             else
-                                for (int o = 0; o < 21; ++o)
+                                for (int o = 0; o < jobNum; ++o)
                                     if ((G[p][q].ptrB[o] == &G[m][n]) && startTime[p][q] > max) {
                                         max = startTime[p][q];
                                         break;
                                     }
                         }
-                    if (overhaul)
-                        if (overhaul[n]) {
-                            OVERHAULPTR tmp = overhaul[n];
-                            while (tmp) {
-                                if (tmp->startTime > max && tmp->startTime < max ||
-                                    tmp->endTime > startTime[i][n] && tmp->endTime < startTime[i][n])
-                                    max = tmp->endTime;
-                                tmp = tmp->nextOverhaul;
-                            }
+                    if (overhaul) {
+                        OVERHAULPTR tmp = overhaul[n];
+                        while (tmp) {
+                            if (tmp->startTime > max && tmp->endTime < max ||
+                                tmp->startTime > startTime[i][n] && tmp->endTime < startTime[i][n] ||
+                                max > tmp->startTime && startTime[m][n] < tmp->startTime)
+                                max = tmp->endTime;
+                            tmp = tmp->nextOverhaul;
                         }
-                    startTime[m][n] = max +G[m][n].tmpTime;
+                    }
+                    startTime[m][n] = max + G[m][n].tmpTime;
                 }
 
     int makespan = 0;

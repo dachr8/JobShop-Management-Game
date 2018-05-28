@@ -20,7 +20,7 @@ int main(void) {
     overhaul = NULL;
 
     puts("IO Mode: 1.Keyboard 2.File");
-    puts("Please input your input mode: ");
+    puts("Please input your IO mode: ");
     scanf("%d", &inputMode);
     switch (inputMode) {
         case 1:
@@ -44,11 +44,11 @@ int main(void) {
             schedule(times);
             output(schedule(times));
 
-            //getOverhaul();
+            getOverhaul();
             fclose(stdin);
 
             puts("Please wait for the output result...");
-            //output(schedule(times));
+            output(schedule(times));
             break;
         default:
             puts("Please input your IO mode: ");

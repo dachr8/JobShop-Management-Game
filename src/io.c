@@ -33,12 +33,19 @@ void getOverhaul() {
     int num = 0, startTime, machine, time;
     while (num != -1) {
         while (scanf("%d%d%d", &startTime, &machine, &time) == 3) {
-            overhaul[machine] = malloc(sizeof(struct overhaul));
-            overhaul[machine]->startTime = startTime;
-            overhaul[machine]->endTime = startTime + time;
-            overhaul[machine]->nextOverhaul = NULL;
+            OVERHAULPTR tmp;
+            if (overhaul[machine]) {
+                tmp = overhaul[machine];
+                while (tmp->nextOverhaul)
+                    tmp = tmp->nextOverhaul;
+                tmp = tmp->nextOverhaul = malloc(sizeof(struct overhaul));
+            } else
+                tmp = overhaul[machine] = malloc(sizeof(struct overhaul));
+            tmp->startTime = startTime;
+            tmp->endTime = startTime + time;
+            tmp->nextOverhaul = NULL;
         }
-        if (!scanf("%d", &num))
+        if (scanf("%d", &num) != 1)
             return;
     }
 }
@@ -50,9 +57,8 @@ void output(int makespan) {
         fprintf(fp, "\r\nM%d", i);
         MACHINEPTR tmp = machine[i];
         OVERHAULPTR tmp2 = NULL;
-        if (overhaul)
+        if (overhaul) {
             tmp2 = overhaul[i];
-        while (tmp2) {
             int flag = 1;
             while (tmp2 && flag)
                 if (tmp2->endTime <= tmp->startTime) {
@@ -62,14 +68,16 @@ void output(int makespan) {
                 } else
                     flag = 0;
         }
+
+
         while (tmp) {
             printf(" (%d,%d-%d,%d)", tmp->startTime, tmp->job, tmp->order, tmp->endTime);
             fprintf(fp, " (%d,%d-%d,%d)", tmp->startTime, tmp->job, tmp->order, tmp->endTime);
             tmp = tmp->nextJob;
         }
     }
-    printf("\nEnd %d\n", makespan);
-    fprintf(fp, "\r\nEnd %d\n", makespan);
+    printf("\nEnd %d\n\n", makespan);
+    fprintf(fp, "\r\nEnd %d\r\n", makespan);
     fclose(fp);
 }
 
