@@ -253,6 +253,11 @@ int computeDAGAndStartTime(const int *chromosome, const int *times) {
                     currentM = currentM->nextJob;
                 }
             }
+<<<<<<< HEAD
+=======
+            currentM = currentM->nextJob;
+        }
+>>>>>>> 7e4af033a46b057795a9501377644f0321ad50c3
     }
 
     return makespan;
