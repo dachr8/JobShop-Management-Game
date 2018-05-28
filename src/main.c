@@ -37,7 +37,7 @@ int main(void) {
             output(schedule(times));
             break;
         case 2:
-            freopen("input-la01.txt", "r", stdin);
+            freopen("input.txt", "r", stdin);
             times = getJob();
 
             puts("Please wait for the output result...");
