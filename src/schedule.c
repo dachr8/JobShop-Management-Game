@@ -9,31 +9,31 @@ void swap(int *a, int *b);
 
 void swapPtr(int **a, int **b);
 
-void initPopulation(const int *times);
+void initPopulation();
 
 int rouletteWheelSelection(const int *makespan, int totalMakespan);
 
 int *crossover(const int *a, const int *b);
 
-int computeDAGAndStartTime(const int *chromosome, const int *times, int mode);
+int computeDAGAndStartTime(const int *chromosome, int mode);
 
-int schedule(const int *times) {
+int schedule() {
     int makespan[SIZE], totalMakespan = 0;
-    initPopulation(times);
+    initPopulation();
 
-    for (int i = 0; i < SIZE; ++i) {
+    for (int i = 0; i < SIZE * 5 / 4; ++i) {//Iterative
 
-        for (int j = 0; j < SIZE / 2; j++)
+        for (int j = 0; j < SIZE / 2; j++)//Selection
             swapPtr(&population[j], &population[rand() % (SIZE / 2)]);
 
         for (int j = 0; j < SIZE / 4; ++j) {
             srand((unsigned) time(NULL));
             if (rand() % 10 < 7) {
                 free(population[SIZE / 2 + j]);
-                population[SIZE / 2 + j] = crossover(population[j], population[j + SIZE / 4]);
+                population[SIZE / 2 + j] = crossover(population[j], population[j + SIZE / 4]);//Crossover
                 free(population[3 * SIZE / 4 + j]);
                 population[3 * SIZE / 4 + j] = crossover(population[j + SIZE / 4], population[j]);
-                if (rand() % 10 < 1)
+                if (rand() % 10 < 1)//Mutation
                     swap(&population[SIZE / 2 + j][rand() % len], &population[SIZE / 2 + j][rand() % len]);
                 if (rand() % 10 < 1)
                     swap(&population[3 * SIZE / 4 + j][rand() % len], &population[3 * SIZE / 4 + j][rand() % len]);
@@ -41,13 +41,13 @@ int schedule(const int *times) {
         }
 
         for (int j = 0; j < SIZE; ++j) {
-            makespan[j] = computeDAGAndStartTime(population[j], times, 0);
-            totalMakespan += makespan[j];
+            makespan[j] = computeDAGAndStartTime(population[j], 0);//Get makespan
+            totalMakespan += makespan[j];//
         }
 
         for (int j = 0, flag = 1; (j < SIZE - 1) && flag; ++j) {
             flag = 0;
-            for (int k = 0; k < SIZE - 1; ++k)
+            for (int k = 0; k < SIZE - 1; ++k)//Bubble sort by makespan
                 if (makespan[k] >= makespan[k + 1]) {
                     swap(&makespan[k], &makespan[k + 1]);
                     swapPtr(&population[k], &population[k + 1]);
@@ -56,20 +56,12 @@ int schedule(const int *times) {
         }
     }
 
-    computeDAGAndStartTime(population[0], times, 1);
+    computeDAGAndStartTime(population[0], 1);//Mode 1 for output
 
     for (int i = 0; i < SIZE; ++i)
         free(population[i]);
     free(population);
-/*
-    for (int a = 0; a < 10; ++a) {
-        printf("\nmakespan:%d  ", makespan[a]);
-        for (int b = 0; b < len; ++b)
-            printf("%d", population[a][b]);
-    }
-    int c[10] = {0, 0, 0, 0, 0, 1, 1, 1, 1, 1};
-    computeDAGAndStartTime(c, times, 1);
-*/
+
     return makespan[0];
 }
 
@@ -85,14 +77,12 @@ void swapPtr(int **a, int **b) {
     *b = t;
 }
 
-void initPopulation(const int *times) {
-    len = 0;
-    for (int i = 0; i < jobNum; ++i)
-        len += times[i];
+void initPopulation() {
+    len = jobNum * machineNum;
     //Code the workpiece process to initialize the chromosome
     int *p = malloc(sizeof(int) * len);
     for (int i = 0, k = 0; i < jobNum; ++i)
-        for (int j = 0; j < times[i]; ++j)
+        for (int j = 0; j < machineNum; ++j)
             p[k++] = i;
     //Perform SIZE operations on chromosomes to establish initial populations
     population = malloc(sizeof(p) * SIZE);
@@ -158,7 +148,7 @@ struct graph {
     struct graph *ptrB[15];
 };
 
-int computeDAGAndStartTime(const int *chromosome, const int *times, int mode) {
+int computeDAGAndStartTime(const int *chromosome, int mode) {
     int T[jobNum];//构建长度为工件数的全0数组，操作累加器
     int tasksResource[machineNum][jobNum];//存放上一次使用这台机器的节点相对工序号
     int startTime[jobNum][machineNum];//各节点的起始时间，初始化为0
@@ -192,7 +182,7 @@ int computeDAGAndStartTime(const int *chromosome, const int *times, int mode) {
         G[num][t].point = i;
         G[num][t].machine = r;
 
-        if (t < times[num] - 1)
+        if (t < machineNum - 1)
             G[num][t].ptrA = &G[num][t + 1];//若不是num工件的最后一道工序，则将当前工序指向后一道工序的节点i
         else
             G[num][t].ptrA = NULL;//指向最后节点
@@ -243,7 +233,7 @@ int computeDAGAndStartTime(const int *chromosome, const int *times, int mode) {
 
     int makespan = 0;
     for (int i = 0; i < jobNum; ++i)
-        makespan = (startTime[i][times[i] - 1] > makespan) ? startTime[i][times[i] - 1] : makespan;
+        makespan = (startTime[i][machineNum - 1] > makespan) ? startTime[i][machineNum - 1] : makespan;
 
     if (mode) {
         machine = malloc(machineNum * sizeof(MACHINEPTR));

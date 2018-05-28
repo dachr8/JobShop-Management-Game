@@ -2,24 +2,20 @@
 #include <malloc.h>
 #include "jobshop.h"
 
-int *getJob() {
+void *getJob() {
     scanf("%d%d", &jobNum, &machineNum);
 
-    int *times = malloc(jobNum * sizeof(int));
     job = malloc(jobNum * sizeof(JOBPTR));
 
     for (int i = 0; i < jobNum; ++i) {
-        JOBPTR node = job[i] = malloc(sizeof(struct job)), tmp;
+        JOBPTR node = job[i] = malloc(sizeof(struct job));
         for (int j = 0; j < machineNum - 1; ++j) {
             scanf("%d %d", &node->machine, &node->time);
             node = node->nextMachine = malloc(sizeof(struct job));
         }
         scanf("%d %d", &node->machine, &node->time);
         node->nextMachine = NULL;
-        times[i] = machineNum;
     }
-
-    return times;
 }
 
 /*
@@ -84,7 +80,6 @@ void output(int makespan) {
                     flag = 0;
         }
 
-
         while (tmp) {
             printf(" (%d,%d-%d,%d)", tmp->startTime, tmp->job, tmp->order, tmp->endTime);
             fprintf(fp, " (%d,%d-%d,%d)", tmp->startTime, tmp->job, tmp->order, tmp->endTime);
@@ -99,7 +94,7 @@ void output(int makespan) {
     fclose(fp);
 }
 
-void freeAll(int *times) {
+void freeAll() {
     for (int i = 0; i < jobNum; ++i) {
         while (job[i]) {
             JOBPTR tmp = job[i];
@@ -122,5 +117,4 @@ void freeAll(int *times) {
             }
     }
     free(machine);
-    free(times);
 }
