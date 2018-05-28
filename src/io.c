@@ -64,7 +64,7 @@ void output(int makespan) {
                     flag = 0;
         }
         while (tmp) {
-            printf(" (%d,%d-%d,%d)", tmp->startTime, tmp->job, tmp->order, tmp->startTime);
+            printf(" (%d,%d-%d,%d)", tmp->startTime, tmp->job, tmp->order, tmp->endTime);
             fprintf(fp, " (%d,%d-%d,%d)", tmp->startTime, tmp->job, tmp->order, tmp->endTime);
             tmp = tmp->nextJob;
         }
