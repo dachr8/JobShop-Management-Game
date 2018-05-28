@@ -1,7 +1,6 @@
 //author songyiwen and aojia
 //co-author dachr
 #include <stdlib.h>
-#include <time.h>
 #include "jobshop.h"
 
 int len, **population;
@@ -21,7 +20,6 @@ int computeDAGAndStartTime(const int *chromosome, const int *times, int mode);
 int schedule(const int *times) {
     int makespan[SIZE], totalMakespan = 0;
     initPopulation(times);
-
 
     for (int i = 0; i < SIZE; ++i) {
 
@@ -60,12 +58,17 @@ int schedule(const int *times) {
 
     computeDAGAndStartTime(population[0], times, 1);
 
+    for (int i = 0; i < SIZE; ++i)
+        free(population[i]);
+    free(population);
 /*
     for (int a = 0; a < 10; ++a) {
         printf("\nmakespan:%d  ", makespan[a]);
         for (int b = 0; b < len; ++b)
             printf("%d", population[a][b]);
     }
+    int c[10] = {0, 0, 0, 0, 0, 1, 1, 1, 1, 1};
+    computeDAGAndStartTime(c, times, 1);
 */
     return makespan[0];
 }
@@ -197,8 +200,8 @@ int computeDAGAndStartTime(const int *chromosome, const int *times, int mode) {
 
         for (int p = 0; p < jobNum; p++)
             flag[p] = 1;
-        for (int p = 0, o = 0; p < i && flag[chromosome[p]]; ++p)//p为染色体的操作数
-            if (tasksResource[r][chromosome[p]] > -1) {
+        for (int p = 0, o = 0; p < i; ++p)//p为染色体的操作数
+            if (tasksResource[r][chromosome[p]] > -1 && flag[chromosome[p]]) {
                 for (o = 0; G[chromosome[p]][tasksResource[r][chromosome[p]]].ptrB[o]; ++o);
                 G[chromosome[p]][tasksResource[r][chromosome[p]]].ptrB[o] = &G[num][t];
                 flag[chromosome[p]] = 0;
@@ -227,10 +230,10 @@ int computeDAGAndStartTime(const int *chromosome, const int *times, int mode) {
                                     }
                         }
                     if (overhaul) {
-                        OVERHAULPTR tmp = overhaul[n];
+                        OVERHAULPTR tmp = overhaul[tmpPtr->machine];
                         while (tmp) {
-                            if (tmp->startTime < max && tmp->endTime > max ||
-                                tmp->startTime > max && tmp->startTime < startTime[i][n])
+                            if (tmp->startTime <= max && tmp->endTime > max ||
+                                tmp->startTime >= max && tmp->startTime < startTime[i][n])
                                 max = tmp->endTime;
                             tmp = tmp->nextOverhaul;
                         }

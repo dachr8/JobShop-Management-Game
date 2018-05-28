@@ -8,6 +8,22 @@ int *getJob() {
     int *times = malloc(jobNum * sizeof(int));
     job = malloc(jobNum * sizeof(JOBPTR));
 
+    for (int i = 0; i < jobNum; ++i) {
+        JOBPTR node = job[i] = malloc(sizeof(struct job)), tmp;
+        for (int j = 0; j < machineNum - 1; ++j) {
+            scanf("%d %d", &node->machine, &node->time);
+            node = node->nextMachine = malloc(sizeof(struct job));
+        }
+        scanf("%d %d", &node->machine, &node->time);
+        node->nextMachine = NULL;
+        times[i] = machineNum;
+    }
+
+    return times;
+}
+
+/*
+ *
     int num;
     scanf("%d", &num);
     while (num != -1) {
@@ -23,8 +39,7 @@ int *getJob() {
         scanf("%d", &num);
     }
 
-    return times;
-}
+ */
 
 void getOverhaul() {
     overhaul = malloc(machineNum * sizeof(OVERHAULPTR));
@@ -62,8 +77,8 @@ void output(int makespan) {
             int flag = 1;
             while (tmp2 && flag)
                 if (tmp2->endTime <= tmp->startTime) {
-                    printf(" (%d,\"Overhaul\",%d)", tmp2->startTime, tmp2->endTime);
-                    fprintf(fp, " (%d,\"Overhaul\",%d)", tmp2->startTime, tmp2->endTime);
+                    printf(" (%d,\"检修\",%d)", tmp2->startTime, tmp2->endTime);
+                    fprintf(fp, " (%d,\"检修\",%d)", tmp2->startTime, tmp2->endTime);
                     tmp2 = tmp2->nextOverhaul;
                 } else
                     flag = 0;
@@ -76,12 +91,15 @@ void output(int makespan) {
             tmp = tmp->nextJob;
         }
     }
-    printf("\nEnd %d\n\n", makespan);
-    fprintf(fp, "\r\nEnd %d\r\n", makespan);
+    fprintf(fp, "\nTime Used: %.3lfs", (double) clock() / CLOCKS_PER_SEC);
+    printf("\nTime Used: %.3lfs", (double) clock() / CLOCKS_PER_SEC);
+    printf("\nEnd Time: %d\n\n", makespan);
+    fprintf(fp, "\r\nEnd Time: %d\r\n", makespan);
+
     fclose(fp);
 }
 
-void freeAll(int *times, int **population) {
+void freeAll(int *times) {
     for (int i = 0; i < jobNum; ++i) {
         while (job[i]) {
             JOBPTR tmp = job[i];
@@ -105,7 +123,4 @@ void freeAll(int *times, int **population) {
     }
     free(machine);
     free(times);
-    for (int i = 0; i < SIZE; ++i)
-        free(population[i]);
-    free(population);
 }

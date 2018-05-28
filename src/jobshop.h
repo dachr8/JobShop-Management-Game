@@ -2,6 +2,7 @@
 #define JOBSHOP_MANAGEMENT_GAME_JOBSHOP_H
 
 #include <stdio.h>
+#include <time.h>
 
 #define SIZE (4*jobNum*machineNum)
 
