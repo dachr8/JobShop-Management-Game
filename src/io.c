@@ -60,7 +60,7 @@ void getOverhaul() {
 }
 */
 void output(int makespan) {
-    FILE *fp = fopen("output.txt", "a");
+    FILE *fp = fopen("9~12班36output.txt", "a");
     for (int i = 0; i < machineNum; ++i) {
         printf("\nM%d", i);
         fprintf(fp, "\r\nM%d", i);
