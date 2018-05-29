@@ -23,7 +23,7 @@ int schedule() {
 
     for (int i = 0; i < SIZE * 5 / 4; ++i) {//Iterative
         if (doomClock == jobNum) {
-            for (int j = 0; j < SIZE; j++)/
+            for (int j = machineNum; j < SIZE; j++)/
                  swap(&population[j][rand() % len], &population[j][rand() % len]);
             doomClock = 0;
             } else {
