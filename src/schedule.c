@@ -18,12 +18,12 @@ int *crossover(const int *a, const int *b);
 int computeDAGAndStartTime(const int *chromosome, int mode);
 
 int schedule() {
-    int makespan[SIZE], totalMakespan = 0;
+    int makespan[SIZE], totalMakespan = 0, lastMakespan = 0, doomClock = 0;
     initPopulation();
 
     for (int i = 0; i < SIZE * 5 / 4; ++i) {//Iterative
 
-        for (int j = 0; j < SIZE / 2; j++)//Selection
+        for (int j = 0; j < SIZE / 2; j++)//Shuffle
             swapPtr(&population[j], &population[rand() % (SIZE / 2)]);
 
         for (int j = 0; j < SIZE / 4; ++j) {
@@ -54,6 +54,10 @@ int schedule() {
                     flag = 1;
                 }
         }
+        
+        doom = makespan[0] == lastMakespan ? doom + 1 : 0;
+        lastMakespan = makespan[0];
+  
     }
 
     computeDAGAndStartTime(population[0], 1);//Mode 1 for output
