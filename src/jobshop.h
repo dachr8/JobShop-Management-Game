@@ -4,7 +4,9 @@
 #include <stdio.h>
 #include <time.h>
 
-#define SIZE (4*jobNum*machineNum)
+#define SIZE (4*jobNum+4*machineNum+40)
+
+#define LIMIT 300000
 
 typedef struct job {
     int machine, time;

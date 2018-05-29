@@ -1,8 +1,6 @@
 //author dachr
 #include "jobshop.h"
 
-#define LIMIT 300000
-
 extern void *getJob();
 
 extern void getOverhaul();
@@ -17,7 +15,7 @@ int main(void) {
     while (clock() < LIMIT) {
         overhaul = NULL;
 
-        freopen("la01.txt", "r", stdin);//
+        freopen("la06.txt", "r", stdin);//
         getJob();
 
         puts("Please wait for the output result...");
