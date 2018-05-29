@@ -16,13 +16,17 @@ int *crossover(const int *a, const int *b);
 int computeDAGAndStartTime(const int *chromosome, int mode);
 
 int schedule() {
-    int makespan[SIZE], totalMakespan = 0, lastMakespan = 0, doomClock = 0;
+    int makespan[SIZE], totalMakespan = 0, lastMakespan = 0, doomClock = 0, maxL = 2, survivor = machineNum;
     initPopulation();
     clock_t startClock = clock();
-    for (int l = 0; l < 2 && (clock() - startClock < LIMIT / 10); ++l, doomClock = jobNum + 5) {
+    if (jobNum * machineNum >= 100) {
+        ++maxL;
+        survivor = 1;
+    }
+    for (int l = 0; l < maxL && (clock() - startClock < LIMIT / (l + 1)); ++l, doomClock = DOOM) {
         for (int i = 0; i < SIZE * 8; ++i) {//Iterative
-            if (doomClock == jobNum + 5) {
-                for (int j = machineNum; j < SIZE; ++j)
+            if (doomClock == DOOM) {
+                for (int j = survivor; j < SIZE; ++j)
                     swap(&population[j][rand() % len], &population[j][rand() % len]);
                 doomClock = 0;
             } else {
@@ -108,6 +112,7 @@ void initPopulation() {
     }
     free(p);
 }
+
 /*
 int rouletteWheelSelection(const int *makespan, int totalMakespan) {
     double fitness = (double) totalMakespan * rand() / RAND_MAX, total = 0;
@@ -268,5 +273,3 @@ int computeDAGAndStartTime(const int *chromosome, int mode) {
 
     return makespan;
 }
-
-

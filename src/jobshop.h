@@ -4,7 +4,9 @@
 #include <stdio.h>
 #include <time.h>
 
-#define SIZE (4*jobNum+4*machineNum+40)
+#define SIZE (4 * jobNum + 4 * machineNum + 40)
+
+#define DOOM (jobNum + 5)
 
 #define LIMIT 300000
 
