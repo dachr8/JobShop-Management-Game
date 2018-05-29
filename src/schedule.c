@@ -22,7 +22,11 @@ int schedule() {
     initPopulation();
 
     for (int i = 0; i < SIZE * 5 / 4; ++i) {//Iterative
-
+        if (doomClock == jobNum) {
+            for (int j = 0; j < SIZE; j++)/
+                 swap(&population[j][rand() % len], &population[j][rand() % len]);
+            doomClock = 0;
+            } else {
         for (int j = 0; j < SIZE / 2; j++)//Shuffle
             swapPtr(&population[j], &population[rand() % (SIZE / 2)]);
 
@@ -39,7 +43,7 @@ int schedule() {
                     swap(&population[3 * SIZE / 4 + j][rand() % len], &population[3 * SIZE / 4 + j][rand() % len]);
             }
         }
-
+        }
         for (int j = 0; j < SIZE; ++j) {
             makespan[j] = computeDAGAndStartTime(population[j], 0);//Get makespan
             totalMakespan += makespan[j];//
@@ -55,9 +59,9 @@ int schedule() {
                 }
         }
         
-        doom = makespan[0] == lastMakespan ? doom + 1 : 0;
+        doomClock = makespan[0] == lastMakespan ? doomClock + 1 : 0;
         lastMakespan = makespan[0];
-  
+        
     }
 
     computeDAGAndStartTime(population[0], 1);//Mode 1 for output
