@@ -15,7 +15,7 @@ int main(void) {
     while (clock() < LIMIT) {
         //overhaul = NULL;
 
-        freopen("la16.txt", "r", stdin);//
+        freopen("input.txt", "r", stdin);//
         getJob();
 
         puts("Please wait for the output result...");
