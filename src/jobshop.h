@@ -17,15 +17,15 @@ typedef struct machine {
     int job, order, startTime, endTime;
     struct machine *nextJob;
 } *MACHINEPTR;
-
+/*
 typedef struct overhaul {
     int startTime, endTime;
     struct overhaul *nextOverhaul;
 } *OVERHAULPTR;
-
+*/
 int jobNum, machineNum;
 JOBPTR *job;
 MACHINEPTR *machine;
-OVERHAULPTR *overhaul;
+//OVERHAULPTR *overhaul;
 
 #endif //JOBSHOP_MANAGEMENT_GAME_JOBSHOP_H

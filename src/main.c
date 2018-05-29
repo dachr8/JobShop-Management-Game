@@ -3,7 +3,7 @@
 
 extern void *getJob();
 
-extern void getOverhaul();
+//extern void getOverhaul();
 
 extern int schedule();
 
@@ -13,19 +13,19 @@ extern void freeAll();
 
 int main(void) {
     while (clock() < LIMIT) {
-        overhaul = NULL;
+        //overhaul = NULL;
 
-        freopen("la06.txt", "r", stdin);//
+        freopen("input.txt", "r", stdin);//
         getJob();
 
         puts("Please wait for the output result...");
         output(schedule());
 
-        getOverhaul();//
+        //getOverhaul();
         fclose(stdin);
 
-        puts("Please wait for the output result...");
-        output(schedule());
+        //puts("Please wait for the output result...");
+        //output(schedule());
 
         freeAll();
 

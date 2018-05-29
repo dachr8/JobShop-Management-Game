@@ -11,8 +11,6 @@ void swapPtr(int **a, int **b);
 
 void initPopulation();
 
-int rouletteWheelSelection(const int *makespan, int totalMakespan);
-
 int *crossover(const int *a, const int *b);
 
 int computeDAGAndStartTime(const int *chromosome, int mode);
@@ -21,16 +19,14 @@ int schedule() {
     int makespan[SIZE], totalMakespan = 0, lastMakespan = 0, doomClock = 0;
     initPopulation();
     clock_t startClock = clock();
-    for (int l = 0; l < 2 && (clock() - startClock < LIMIT / 10); ++l) {
-        if (l)
-            doomClock = jobNum + 5;
+    for (int l = 0; l < 2 && (clock() - startClock < LIMIT / 10); ++l, doomClock = jobNum + 5) {
         for (int i = 0; i < SIZE * 8; ++i) {//Iterative
             if (doomClock == jobNum + 5) {
-                for (int j = machineNum; j < SIZE; j++)
+                for (int j = machineNum; j < SIZE; ++j)
                     swap(&population[j][rand() % len], &population[j][rand() % len]);
                 doomClock = 0;
             } else {
-                for (int j = 0; j < SIZE / 2; j++)//Shuffle
+                for (int j = 0; j < SIZE / 2; ++j)//Shuffle
                     swapPtr(&population[j], &population[rand() % (SIZE / 2)]);
 
                 for (int j = 0; j < SIZE / 4; ++j) {
@@ -112,7 +108,7 @@ void initPopulation() {
     }
     free(p);
 }
-
+/*
 int rouletteWheelSelection(const int *makespan, int totalMakespan) {
     double fitness = (double) totalMakespan * rand() / RAND_MAX, total = 0;
     for (int i = 0; i < SIZE; ++i) {
@@ -121,7 +117,7 @@ int rouletteWheelSelection(const int *makespan, int totalMakespan) {
             return i;
     }
 }
-
+*/
 int *crossover(const int *a, const int *b) {
     int *child = malloc(sizeof(int) * len), indexA[len], indexB[len];
     for (int i = 0; i < len; ++i)
@@ -231,7 +227,7 @@ int computeDAGAndStartTime(const int *chromosome, int mode) {
                                         max = startTime[p][q];
                                         break;
                                     }
-                        }
+                        }/*
                     if (overhaul) {
                         OVERHAULPTR tmp = overhaul[tmpPtr->machine];
                         while (tmp) {
@@ -240,7 +236,7 @@ int computeDAGAndStartTime(const int *chromosome, int mode) {
                                 max = tmp->endTime;
                             tmp = tmp->nextOverhaul;
                         }
-                    }
+                    }*/
                     startTime[m][n] = max + G[m][n].tmpTime;
                 }
 

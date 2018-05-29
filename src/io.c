@@ -19,7 +19,6 @@ void *getJob() {
 }
 
 /*
- *
     int num;
     scanf("%d", &num);
     while (num != -1) {
@@ -34,9 +33,8 @@ void *getJob() {
         free(node);
         scanf("%d", &num);
     }
-
  */
-
+/*
 void getOverhaul() {
     overhaul = malloc(machineNum * sizeof(OVERHAULPTR));
     for (int i = 0; i < machineNum; ++i)
@@ -60,13 +58,14 @@ void getOverhaul() {
             return;
     }
 }
-
+*/
 void output(int makespan) {
     FILE *fp = fopen("output.txt", "a");
     for (int i = 0; i < machineNum; ++i) {
         printf("\nM%d", i);
         fprintf(fp, "\r\nM%d", i);
         MACHINEPTR tmp = machine[i];
+        /*
         OVERHAULPTR tmp2 = NULL;
         if (overhaul) {
             tmp2 = overhaul[i];
@@ -79,6 +78,7 @@ void output(int makespan) {
                 } else
                     flag = 0;
         }
+        */
 
         while (tmp) {
             printf(" (%d,%d-%d,%d)", tmp->startTime, tmp->job, tmp->order, tmp->endTime);
@@ -109,12 +109,14 @@ void freeAll() {
             machine[i] = machine[i]->nextJob;
             free(tmp1);
         }
+        /*
         if (overhaul)
             while (overhaul[i]) {
                 OVERHAULPTR tmp2 = overhaul[i];
                 overhaul[i] = overhaul[i]->nextOverhaul;
                 free(tmp2);
             }
+            */
     }
     free(machine);
 }
