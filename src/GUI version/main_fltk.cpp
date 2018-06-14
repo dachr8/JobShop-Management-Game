@@ -50,7 +50,9 @@ Fl_Return_Button *button;
 void schedule_thread() {
     double startTime = clock();
 
+    thread_status = 1;
     makespan = schedule();
+    thread_status = 0;
 
     usedTime = (clock() - startTime) / CLOCKS_PER_SEC;
     std::string tmp = "Used time: " + std::to_string(usedTime) + "\nMakespan: " + std::to_string(makespan);
@@ -60,22 +62,28 @@ void schedule_thread() {
 }
 
 void get_input_cb() {
-    freeAll();
-    overhaul = NULL;
+    if (!thread_status) {
+        freeAll();
+        overhaul = NULL;
 
-    Fl_Native_File_Chooser fnfc;
-    fnfc.title("Open file");
-    fnfc.type(Fl_Native_File_Chooser::BROWSE_FILE);
-    if (fnfc.show())return;
-    freopen(fnfc.filename(), "r", stdin);///
-    getJob();
-    fclose(stdin);
+        Fl_Native_File_Chooser fnfc;
+        fnfc.title("Open file");
+        fnfc.type(Fl_Native_File_Chooser::BROWSE_FILE);
+        if (fnfc.show())return;
+        freopen(fnfc.filename(), "r", stdin);///
+        getJob();
+        fclose(stdin);
 
-    box_makespan->label("Calculating...");
-    button->hide();
+        box_makespan->label("Calculating...");
+        button->hide();
 
-    std::thread t(schedule_thread);
-    t.detach();
+        std::thread t(schedule_thread);
+        t.detach();
+    } else {
+        fl_message_title("Error");
+        fl_message("No input file can be loaded now...");
+    }
+
 }
 
 void input_information_cb() {
@@ -98,7 +106,7 @@ void input_information_cb() {
 }
 
 void save_output_cb(const char *filename) {
-    if (jobNum) {
+    if (jobNum && !thread_status) {
         Fl_Native_File_Chooser fnfc;
         fnfc.title("Save File As");
         fnfc.type(Fl_Native_File_Chooser::BROWSE_FILE);
@@ -108,7 +116,7 @@ void save_output_cb(const char *filename) {
         fclose(stdout);
     } else {
         fl_message_title("Error");
-        fl_message("No output file can be saved...");
+        fl_message("No output file can be saved now...");
     }
 }
 
