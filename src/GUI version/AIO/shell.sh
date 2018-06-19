@@ -1,0 +1,2 @@
+# The following line is aimed to compile cxx files coded for fltk via g++ getting arguments from fltk-config
+g++ -std=c++11 `fltk-config --cxxflags` main_fltk.cpp `fltk-config --ldflags` -o jobshop.exe

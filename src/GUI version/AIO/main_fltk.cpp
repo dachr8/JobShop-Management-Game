@@ -1,95 +1,14 @@
-#include <FL/Fl.H>
-#include <FL/Fl_Double_Window.H>
-#include <FL/Fl_Menu_Bar.H>
-#include <FL/Fl_Box.H>
-#include <FL/Fl_Return_Button.H>
-#include <FL/Fl_Int_Input.H>
-#include <FL/Fl_Pack.H>
-#include <FL/fl_ask.H>
-#include <FL/Fl_Native_File_Chooser.H>
-#include <FL/Fl_Multiline_Output.H>
-
-#include <iostream>
-#include <string>
-#include <thread>
-
 #include "jobshop.h"
-#include "itos.h"
 
-#define WINDOW_WIDTH 800
-#define WINDOW_HEIGHT 600
-
-#define MENU_HEIGHT 30
-#define TITLE_HEIGHT 90
-
-#define DIVIDE 20
-
-//#define PACK_DIVIDE 200
-
-//#define INPUT_HEIGHT 30
-
-#define MAKESPAN_WIDTH 200
-#define MAKESPAN_HEIGHT 40
-
-#define BUTTON_WIDTH 120
-#define BUTTON_HEIGHT 40
-
-void *getJob();
-
-int schedule();
-
-void output(int makespan);
-
-void freeAll();
-
-Fl_Double_Window *window, *window_information;
-Fl_Multiline_Output *information;
-Fl_Box *box_makespan;
-Fl_Return_Button *button;
-
-void schedule_thread() {
-    double startTime = clock();
-
-    thread_status = 1;
-    makespan = schedule();
-    thread_status = 0;
-
-    usedTime = (clock() - startTime) / CLOCKS_PER_SEC;
-    std::string tmp = "Used time: " + std::to_string(usedTime) + "\nMakespan: " + std::to_string(makespan);
-    box_makespan->label(tmp.data());
-    button->label("Next");
-    button->show();
-}
-
-void get_input_cb() {
-    if (!thread_status) {
-        freeAll();
-        overhaul = NULL;
-
-        Fl_Native_File_Chooser fnfc;
-        fnfc.title("Open file");
-        fnfc.type(Fl_Native_File_Chooser::BROWSE_FILE);
-        if (fnfc.show())return;
-        freopen(fnfc.filename(), "r", stdin);///
-        getJob();
-        fclose(stdin);
-
-        box_makespan->label("Calculating...");
-        button->hide();
-
-        std::thread t(schedule_thread);
-        t.detach();
-    } else {
-        fl_message_title("Error");
-        fl_message("No input file can be loaded now...");
-    }
-
+void project_information_cb() {
+    fl_message_title("Introduction");
+    fl_message("Group: 9~12班36\n\n"
+               "Authors: 张志博 赵佳祺 宋伊雯\n\n"
+               "Algorithm: Genetic algorithm\n\n"
+               "Graphical User Interface: Fast Light Tool Kit (\"FLTK\") version 1.3.4\n");
 }
 
 void input_information_cb() {
-//    std::ostringstream ostr;
-//    ostr << std::to_string(jobNum) << " " << std::to_string(machineNum) << std::endl;
-//    std::string tmp = ostr.str();
     if (jobNum) {
         std::string tmp = std::to_string(jobNum) + "\t" + std::to_string(machineNum) + "\n";
         for (int i = 0; i < jobNum; ++i) {
@@ -105,11 +24,12 @@ void input_information_cb() {
     window_information->show();
 }
 
-void save_output_cb(const char *filename) {
-    if (jobNum && !thread_status) {
+void save_output_cb() {
+    if (jobNum && schedule_thread_status == OFF) {
         Fl_Native_File_Chooser fnfc;
         fnfc.title("Save File As");
-        fnfc.type(Fl_Native_File_Chooser::BROWSE_FILE);
+        fnfc.type(Fl_Native_File_Chooser::BROWSE_SAVE_FILE);
+        fnfc.filter("TXT Files*.txt\t*");
         if (fnfc.show())return;
         freopen(fnfc.filename(), "a", stdout);///
         output(makespan);
@@ -120,7 +40,7 @@ void save_output_cb(const char *filename) {
     }
 }
 
-void quit_cb(Fl_Widget *o) {
+void quit_cb(Fl_Widget *w) {
     int hotspot = fl_message_hotspot();
     fl_message_hotspot(0);
     fl_message_title("Exit");
@@ -137,102 +57,337 @@ void hide_cb(Fl_Widget *o) {
 }
 
 
-void project_information_cb() {
-    fl_message_title("Introduction");
-    fl_message("Group: 9~12班36\n\n"
-               "Authors: 张志博 赵佳祺 宋伊雯\n\n"
-               "Algorithm: Genetic algorithm\n\n"
-               "Graphical User Interface: Fast Light Tool Kit (\"FLTK\") version 1.3.4\n");
+void schedule_thread() {
+    double startTime = clock();
+
+    makespan = schedule();
+
+    usedTime = (clock() - startTime) / CLOCKS_PER_SEC;
+
+    // The following part is aimed to
+    // convert a float in to a string with 3 significant digits
+    char t[15];
+    sprintf(t, "%.3lf", usedTime);
+    std::string tmp(t), str = "Used time: " + tmp + " (s)\nMakespan: " + std::to_string(makespan);
+
+    shadiao->hide();
+    draw_gantt_cb(scroll);//after finish schedule ,show the scroll and gantt graph
+
+    static const char *button_label = str.data();
+    box_makespan->label(button_label);
+
+    button->label("Next");
+    button->show();
+
+    schedule_thread_status = OFF;
+
+    save_output_cb();
+}
+
+void get_input_cb() {
+    if (schedule_thread_status == OFF && line_status == OFF) {
+        freeAll();
+        scroll->hide();
+        overhaul = NULL;
+
+        Fl_Native_File_Chooser fnfc;
+        fnfc.title("Open file");
+        fnfc.type(Fl_Native_File_Chooser::BROWSE_FILE);
+        fnfc.filter("TXT Files*.txt\t*");
+        if (fnfc.show())return;
+        freopen(fnfc.filename(), "r", stdin);///
+        getJob();
+        fclose(stdin);
+
+        shadiao->show();
+        box_makespan->label("Calculating...");
+        button->hide();
+
+        schedule_thread_status = ON;
+        std::thread s(schedule_thread);
+        s.detach();
+    } else {
+        fl_message_title("Error");
+        fl_message("No input file can be loaded now...");
+    }
+
+}
+
+void draw_gantt_cb(void *s) {
+    if (line)
+        Fl::delete_widget(line);
+
+    ((Fl_Scroll *) s)->begin();//begin to edit scroll window
+    //according to machine's order ,finish the gantt graph
+    for (int i = 0; i < machineNum; ++i) {
+        MACHINEPTR node = machine[i];
+        for (int j = 0; j < jobNum; ++j) {
+            Fl_Box *box = new Fl_Box(line_status * 100 + node->startTime * 3, i * 75,
+                                     (node->endTime - node->startTime) * 3, 28);
+            std::string str = std::to_string(node->job) + "-" + std::to_string(node->order) + "\n" +
+                              std::to_string(node->startTime) + "-" + std::to_string(node->endTime);
+            box->copy_label(str.data());
+            box->box(FL_UP_BOX);
+            box->color((Fl_Color) node->job + 1);
+            box->labelcolor(FL_BLACK);
+            node = node->nextJob;
+        }
+    }
+    Fl_Box *box = new Fl_Box(0, machineNum * 75, 1, 25);
+    box->box(FL_NO_BOX);
+
+
+    if (overhaul) {
+        OVERHAULPTR tmp = NULL;
+        for (int i = 0; i < machineNum; i++) {
+            if (overhaul[i]) {
+                tmp = overhaul[i];
+                for (int j = 0; tmp; j++) {
+                    Fl_Box *box = new Fl_Box(line_status * 100 + tmp->startTime * 3, i * 75,
+                                             (tmp->endTime - tmp->startTime) * 3, 28);
+                    std::string str = "Overhaul-" + std::to_string(i) + "\n" + std::to_string(tmp->startTime) + "-" +
+                                      std::to_string(tmp->endTime);
+                    box->copy_label(str.data());
+                    box->box(FL_UP_BOX);
+                    box->color((Fl_Color) FL_BLACK);
+                    box->labelcolor(FL_BLACK);
+                    tmp = tmp->nextOverhaul;
+                }
+            }
+        }
+    }
+    ((Fl_Scroll *) s)->end();
+    ((Fl_Scroll *) s)->show();
+
+    if (line_status == ON) {
+        line = new Fl_Box(100, 0, 2, window_gantt->h() - 125);
+        line->box(FL_UP_BOX);
+        line->color((Fl_Color) FL_BLACK);
+    }
+};
+
+void move_cb(void *box_time) {
+    std::string tmp = "Timeline: " + std::to_string(timeline) + "\nMakespan: " + std::to_string(makespan);
+    ((Fl_Box *) box_time)->label(tmp.data());
+    if (move_status == ON) {
+        scroll2->hide();
+        scroll2->scroll_to(timeline * 3 - 100, scroll2->yposition());
+        timeline += 1;
+        scroll2->show();
+    }
+    Fl::repeat_timeout(0.1, move_cb, box_time);
 }
 
 
-void button_cb(Fl_Widget *o) {
+void button_cb(Fl_Widget *button) {
     if (!jobNum)
         get_input_cb();
-    else;//@aojia
+    else
+        window_gantt->show();
 }
 
-int main(int argc, char **argv) {
-    window = new Fl_Double_Window(WINDOW_WIDTH, WINDOW_HEIGHT, "JobShop Management Game");
-    window->size_range(window->w(), window->h(), 0, 0);
+void start_cb(Fl_Widget *button) {
+    if (start_status == OFF) {
+        line_status = ON;
+        std::thread d(draw_gantt_cb, scroll2);
+        d.detach();
+        start_status = ON;
+    }
+    timeline = 0;
+    move_status = ON;
+    button->label("Restart");
+}
 
+void pause_cb(Fl_Widget *button) {
+    if (move_status == ON)
+        move_status = OFF;
+    else
+        move_status = ON;
+}
+
+void overhaul_cb(Fl_Widget *button) {
+    input->value("");
+    window_overhaul->show();
+}
+
+void overhaul_thread() {
+    if (!overhaul) {
+        overhaul = (OVERHAULPTR *) malloc(machineNum * sizeof(OVERHAULPTR));
+        for (int i = 0; i < machineNum; ++i)
+            overhaul[i] = NULL;
+    }
+
+    int machine = (int) spinner->value();
+    OVERHAULPTR tmp;
+    if (overhaul[machine]) {
+        tmp = overhaul[machine];
+        while (tmp->nextOverhaul)
+            tmp = tmp->nextOverhaul;
+        tmp = tmp->nextOverhaul = (OVERHAULPTR) malloc(sizeof(struct overhaul));
+    } else
+        tmp = overhaul[machine] = (OVERHAULPTR) malloc(sizeof(struct overhaul));
+
+    tmp->startTime = timeline;
+    tmp->endTime = tmp->startTime + atoi(input->value());
+    tmp->nextOverhaul = NULL;
+    makespan = computeDAGAndStartTime(population[0], 1);//Mode 1 for output;
+    scroll2->clear();
+    draw_gantt_cb(scroll2);
+}
+
+void overhaul_confirm_cb(Fl_Widget *button) {
+    if (atoi(input->value()) > 0) {
+        std::thread o(overhaul_thread);
+        o.detach();
+        window_overhaul->hide();
+    } else
+        fl_alert("Time is invalid");
+}
+
+
+int main(int argc, char **argv) {
     Fl::scheme("plastic");
 
-    Fl_Menu_Bar *menu = new Fl_Menu_Bar(0, 0, window->w(), MENU_HEIGHT);
+    window_main = new Fl_Double_Window(WINDOW_WIDTH, WINDOW_HEIGHT, "JobShop Management Game");
+
+    Fl_Menu_Bar menu(0, 0, window_main->w(), MENU_HEIGHT);
     Fl_Menu_Item menuitems[] = {
             {"&File",              0, 0,                                    0, FL_SUBMENU},
             {"&Import Input File", 0, (Fl_Callback *) get_input_cb,         0, FL_MENU_DIVIDER},
             {"&Check Input File",  0, (Fl_Callback *) input_information_cb, 0, FL_MENU_DIVIDER},
-            {"&Save File As...", FL_COMMAND + FL_SHIFT + 's', (Fl_Callback *) save_output_cb, 0, FL_MENU_DIVIDER},//
-            {"&Exit",            FL_COMMAND + 'q',            (Fl_Callback *) quit_cb},
+            {"&Save File As...",
+                      FL_COMMAND + FL_SHIFT + 's', (Fl_Callback *) save_output_cb, 0, FL_MENU_DIVIDER},//
+            {"&Exit", FL_COMMAND + 'q',            (Fl_Callback *) quit_cb},
             {0},
             {"&About",             0, 0,                                    0, FL_SUBMENU},
             {"About The &Project", 0, (Fl_Callback *) project_information_cb},
             {0},
             {0}
     };
-    menu->copy(menuitems);
+    menu.copy(menuitems);
 
     int title_Y = MENU_HEIGHT + DIVIDE;
-    int title_width = window->w() - DIVIDE * 2;
-    Fl_Box *title = new Fl_Box(DIVIDE, title_Y, title_width, TITLE_HEIGHT, "JobShop Management Game");
-    title->box(FL_UP_BOX);
-    title->labelsize(36);
-    title->labelfont(FL_BOLD + FL_ITALIC);
-    title->labeltype(FL_SHADOW_LABEL);
-
-/*
- * 这里显示第一次结果甘特图啦
-    int pack_Y = MENU_HEIGHT + DIVIDE * 2 + TITLE_HEIGHT;
-    int pack_width = window->w() - PACK_DIVIDE * 2;
-    int pack_height = window->h() - pack_Y - DIVIDE * 2 - BUTTON_HEIGHT;
-    pack = new Fl_Pack(PACK_DIVIDE, pack_Y, pack_width, pack_height);
-    pack->type(Fl_Pack::VERTICAL);//HORIZONTAL
-    pack->spacing(DIVIDE);
-
-    input[0] = new Fl_Int_Input(0, 0, 0, INPUT_HEIGHT, "Job number: ");
-    input[1] = new Fl_Int_Input(0, 0, 0, INPUT_HEIGHT, "Machine number: ");
-    for (int i = 0; i < 2; ++i) {
-        input[i]->labelsize(20);
-        input[i]->labelfont(FL_BOLD);
-        input[i]->labeltype(FL_SHADOW_LABEL);
-    }
-
-    pack->end();
+    int title_width = window_main->w() - DIVIDE * 2;
+    Fl_Box title(DIVIDE, title_Y, title_width, TITLE_HEIGHT, "JobShop Management Game");
+    title.box(FL_UP_BOX);
+    title.labelsize(36);
+    title.labelfont(FL_BOLD + FL_ITALIC);
+    title.labeltype(FL_SHADOW_LABEL);
 
 
-*/
-    int makespan_X = (window->w() - MAKESPAN_WIDTH) / 2;
-    int makespan_Y = window->h() - MAKESPAN_HEIGHT - BUTTON_HEIGHT - DIVIDE * 2;
-    box_makespan = new Fl_Box(makespan_X, makespan_Y, MAKESPAN_WIDTH, MAKESPAN_HEIGHT, "Please click the button ↓↓↓");
+    Fl_Group gantt(0, 175, 800, 300);//create the scroll window
+    scroll = new Fl_Scroll(0, 175, 800, 300);
+    scroll->end();
+    scroll->hide();//avoid showing the scroll now
+    gantt.end();
+
+
+    int makespan_X = (window_main->w() - MAKESPAN_WIDTH) / 2;
+    int makespan_Y = window_main->h() - MAKESPAN_HEIGHT - BUTTON_HEIGHT - DIVIDE * 2;
+    box_makespan = new Fl_Box(makespan_X, makespan_Y, MAKESPAN_WIDTH, MAKESPAN_HEIGHT,
+                              "Please click the button ↓↓↓");
     box_makespan->labelsize(20);
     box_makespan->labelfont(FL_BOLD);
     box_makespan->labeltype(FL_SHADOW_LABEL);
 
-    int button_X = (window->w() - BUTTON_WIDTH) / 2;
-    int button_Y = window->h() - BUTTON_HEIGHT - DIVIDE;
+    int button_X = (window_main->w() - BUTTON_WIDTH) / 2;
+    int button_Y = window_main->h() - BUTTON_HEIGHT - DIVIDE;
     button = new Fl_Return_Button(button_X, button_Y, BUTTON_WIDTH, BUTTON_HEIGHT, "Start");
-    button->labelsize(18);
+    button->labelsize(BUTTON_LIBELSIZE);
     button->labelfont(FL_BOLD);
     button->labeltype(FL_SHADOW_LABEL);
     button->callback(button_cb);
 
+    shadiao = new Fl_Group(window_main->w() / 2 - 160, 160, 320, 320, 0);
+    Drawing drawing(window_main->w() / 2 - 160, 160, 320, 320, 0);
+    shadiao->end();
 
-    window->resizable(box_makespan);//
-    window->callback(quit_cb);
-    window->end();//We tell FLTK that we will not add any more widgets to window.
-    window->show(argc, argv);//Finally, we show the window and enter the FLTK event loop:
+    window_main->resizable(gantt);//window->resizable(scroll);
+    window_main->callback(quit_cb);
+    window_main->end();//We tell FLTK that we will not add any more widgets to window.
+    window_main->show(argc, argv);//Finally, we show the window and enter the FLTK event loop:
+
 
 
 
     window_information = new Fl_Double_Window(WINDOW_WIDTH, WINDOW_HEIGHT, "Input Information");
     information = new Fl_Multiline_Output(DIVIDE, DIVIDE, window_information->w() - 2 * DIVIDE,
                                           window_information->h() - 2 * DIVIDE);
-
     window_information->resizable(information);
     window_information->callback(hide_cb);
     window_information->end();//We tell FLTK that we will not add any more widgets to window.
     window_information->hide();
+
+
+    window_gantt = new Fl_Double_Window(WINDOW_WIDTH, WINDOW_HEIGHT, "Gantt chart");
+
+    Fl_Group gantt2(0, 0, 800, 475);
+    scroll2 = new Fl_Scroll(0, 0, 800, 475);
+    scroll2->type(Fl_Scroll::VERTICAL_ALWAYS);
+    //draw_gantt_cb(scroll2);
+    scroll2->end();
+    scroll2->hide();
+    gantt2.end();
+
+
+    std::string tmp = "Timeline: 0\nMakespan: " + std::to_string(makespan);
+    Fl_Box *box_time = new Fl_Box(makespan_X, makespan_Y, MAKESPAN_WIDTH, MAKESPAN_HEIGHT, tmp.data());
+    box_time->labelsize(20);
+    box_time->labelfont(FL_BOLD);
+    box_time->labeltype(FL_SHADOW_LABEL);
+
+    int button_left_X = window_gantt->w() / 2 - BUTTON_WIDTH * 2;
+    int button_middle_X = (window_gantt->w() - BUTTON_WIDTH) / 2;
+    int button_right_X = window_gantt->w() / 2 + BUTTON_WIDTH;
+    Fl_Button button_start(button_left_X, button_Y, BUTTON_WIDTH, BUTTON_HEIGHT, "Start");
+    button_start.labelsize(BUTTON_LIBELSIZE);
+    button_start.labelfont(FL_BOLD);
+    button_start.labeltype(FL_SHADOW_LABEL);
+    button_start.callback(start_cb);
+
+    Fl_Button button_pause(button_middle_X, button_Y, BUTTON_WIDTH, BUTTON_HEIGHT, "Pause");
+    button_pause.labelsize(BUTTON_LIBELSIZE);
+    button_pause.labelfont(FL_BOLD);
+    button_pause.labeltype(FL_SHADOW_LABEL);
+    button_pause.callback(pause_cb);
+
+    Fl_Return_Button button_overhaul(button_right_X, button_Y, BUTTON_WIDTH, BUTTON_HEIGHT, "Overhaul");
+    button_overhaul.labelsize(BUTTON_LIBELSIZE);
+    button_overhaul.labelfont(FL_BOLD);
+    button_overhaul.labeltype(FL_SHADOW_LABEL);
+    button_overhaul.callback(overhaul_cb);
+
+
+    window_gantt->resizable(gantt);
+    window_gantt->callback(quit_cb);
+    window_gantt->end();//We tell FLTK that we will not add any more widgets to window.
+    window_gantt->hide();
+
+
+    window_overhaul = new Fl_Double_Window(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2, "Overhaul");
+
+    spinner = new Fl_Spinner(WINDOW_WIDTH / 10, 30, 200, INPUT_HEIGHT, "Machine:");
+    spinner->minimum(0);
+    spinner->maximum(machineNum - 1);
+    spinner->step(1);
+    spinner->value(0);
+
+    input = new Fl_Int_Input(WINDOW_WIDTH / 10, 130, 200, INPUT_HEIGHT, "Time:");
+
+    Fl_Button button_overhaul_confirm(WINDOW_WIDTH / 10, 230, BUTTON_WIDTH, BUTTON_HEIGHT, "&Confirm");
+    button_overhaul_confirm.labelsize(BUTTON_LIBELSIZE);
+    button_overhaul_confirm.labelfont(FL_BOLD);
+    button_overhaul_confirm.labeltype(FL_SHADOW_LABEL);
+    button_overhaul_confirm.callback(overhaul_confirm_cb);
+
+
+    window_overhaul->callback(hide_cb);
+    window_overhaul->end();
+    window_overhaul->hide();
+
+
+    timeline = 0;
+    Fl::add_timeout(0.1, move_cb, box_time);
 
 
     return Fl::run();
@@ -305,7 +460,7 @@ void output(int makespan) {
                 int flag = 1;
                 while (tmp2 && flag)
                     if (tmp2->endTime <= tmp->startTime && tmp2->startTime >= last) {
-                        printf(" (%d,\"overhaul\",%d)", tmp2->startTime, tmp2->endTime);
+                        printf(" (%d,\"检修\",%d)", tmp2->startTime, tmp2->endTime);
                         tmp2 = tmp2->nextOverhaul;
                     } else
                         flag = 0;
@@ -343,6 +498,10 @@ void freeAll() {
             }
     }
     free(machine);
+    if (population) {
+        free(population[0]);
+        free(population);
+    }
 }
 //author songyiwen and aojia
 //co-author dachr
@@ -352,15 +511,6 @@ void freeAll() {
 //schedule.c
 //#include "jobshop.h"
 
-void swap(int *a, int *b);
-
-void swapPtr(int **a, int **b);
-
-void initPopulation();
-
-int *crossover(const int *a, const int *b);
-
-int computeDAGAndStartTime(const int *chromosome, int mode);
 
 int schedule() {
     int makespan[SIZE], lastMakespan = 0, doomClock = 0, maxL = 2, survivor = machineNum;
@@ -384,11 +534,13 @@ int schedule() {
                     srand((unsigned) time(NULL));
                     if (rand() % 10 < 7) {
                         free(population[SIZE / 2 + j]);
-                        population[SIZE / 2 + j] = crossover(population[j], population[j + SIZE / 4]);//Crossover
+                        population[SIZE / 2 + j] = crossover(population[j],
+                                                             population[j + SIZE / 4]);//Crossover
                         free(population[3 * SIZE / 4 + j]);
                         population[3 * SIZE / 4 + j] = crossover(population[j + SIZE / 4], population[j]);
                         if (rand() % 10 < 1)//Mutation
-                            swap(&population[SIZE / 2 + j][rand() % len], &population[SIZE / 2 + j][rand() % len]);
+                            swap(&population[SIZE / 2 + j][rand() % len],
+                                 &population[SIZE / 2 + j][rand() % len]);
                         if (rand() % 10 < 1)
                             swap(&population[3 * SIZE / 4 + j][rand() % len],
                                  &population[3 * SIZE / 4 + j][rand() % len]);
@@ -416,9 +568,8 @@ int schedule() {
 
     computeDAGAndStartTime(population[0], 1);//Mode 1 for output
 
-    for (int i = 0; i < SIZE; ++i)
+    for (int i = 1; i < SIZE; ++i)
         free(population[i]);
-    free(population);
 
     return makespan[0];
 }
@@ -493,8 +644,7 @@ struct graph {
     int point;
     int machine;
     int tmpTime;
-    struct graph *ptrA;
-    struct graph *ptrB[15];
+    struct graph *ptr[20];
 };
 
 int computeDAGAndStartTime(const int *chromosome, int mode) {
@@ -513,9 +663,8 @@ int computeDAGAndStartTime(const int *chromosome, int mode) {
             G[i][j].point = 0;
             G[i][j].tmpTime = 0;
             G[i][j].machine = 0;
-            G[i][j].ptrA = NULL;
             for (int k = 0; k < 21; ++k)
-                G[i][j].ptrB[k] = NULL;
+                G[i][j].ptr[k] = NULL;
         }
     }
 
@@ -532,19 +681,14 @@ int computeDAGAndStartTime(const int *chromosome, int mode) {
         G[num][t].point = i;
         G[num][t].machine = r;
 
-        if (t < machineNum - 1)
-            G[num][t].ptrA = &G[num][t + 1];//若不是num工件的最后一道工序，则将当前工序指向后一道工序的节点i
-        else
-            G[num][t].ptrA = NULL;//指向最后节点
-        //以上为工件约束连接和取值操作
 
         max = t == 0 ? 0 : startTime[num][t - 1];
         for (int p = 0; p < jobNum; p++)
             flag[p] = 1;
         for (int p = 0, o = 0; p < i; ++p)//p为染色体的操作数
             if (tasksResource[r][chromosome[p]] > -1 && flag[chromosome[p]]) {
-                for (o = 0; G[chromosome[p]][tasksResource[r][chromosome[p]]].ptrB[o]; ++o);
-                G[chromosome[p]][tasksResource[r][chromosome[p]]].ptrB[o] = &G[num][t];
+                for (o = 0; G[chromosome[p]][tasksResource[r][chromosome[p]]].ptr[o]; ++o);
+                G[chromosome[p]][tasksResource[r][chromosome[p]]].ptr[o] = &G[num][t];
                 flag[chromosome[p]] = 0;
 
                 max = startTime[chromosome[p]][tasksResource[r][chromosome[p]]] > max
@@ -560,7 +704,7 @@ int computeDAGAndStartTime(const int *chromosome, int mode) {
                     tmp->startTime >= max && tmp->startTime < startTime[num][t])
                     max = tmp->endTime;
                 */
-                if (tmp->startTime >= max && tmp->startTime < startTime[num][t]) {
+                if (tmp->startTime > max && tmp->startTime < startTime[num][t]) {
                     int time = tmp->endTime - tmp->startTime;
                     tmp->startTime = startTime[num][t];
                     tmp->endTime = tmp->startTime + time;
@@ -587,7 +731,7 @@ int computeDAGAndStartTime(const int *chromosome, int mode) {
                     for (int n = 0; n < machineNum && flag; ++n)
                         if (G[m][n].point == i && G[m][n].machine == mach) {
                             node->job = m;
-                            node->order = n + 1;
+                            node->order = n;
                             node->endTime = startTime[m][n];
                             node->startTime = startTime[m][n] - G[m][n].tmpTime;
                             tmp = node;
