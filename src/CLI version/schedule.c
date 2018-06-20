@@ -1,5 +1,5 @@
-//author songyiwen and aojia
-//co-author dachr
+//author aojia/zhaojiaqi and songyiwen 
+//co-author dachr/zhangzhibo 
 #include <stdlib.h>
 #include "jobshop.h"
 

@@ -1,5 +1,8 @@
 #include "jobshop.h"
 
+// TODO
+const std::string ext[] = {".txt", ""};
+
 void project_information_cb() {
     fl_message_title("Introduction");
     fl_message("Group: 9~12班36\n\n"
@@ -29,9 +32,12 @@ void save_output_cb() {
         Fl_Native_File_Chooser fnfc;
         fnfc.title("Save File As");
         fnfc.type(Fl_Native_File_Chooser::BROWSE_SAVE_FILE);
-        fnfc.filter("TXT Files*.txt\t*");
+        fnfc.filter("TXT Files\t*.txt");
         if (fnfc.show())return;
-        freopen(fnfc.filename(), "a", stdout);///
+        //if (fnfc.filter_value())
+
+        std::string str = std::string(fnfc.filename()) + ext[fnfc.filter_value()];
+        freopen(str.data(), "w", stdout);///
         output(makespan);
         fclose(stdout);
     } else {
@@ -93,11 +99,12 @@ void get_input_cb() {
         Fl_Native_File_Chooser fnfc;
         fnfc.title("Open file");
         fnfc.type(Fl_Native_File_Chooser::BROWSE_FILE);
-        fnfc.filter("TXT Files*.txt\t*");
+        fnfc.filter("TXT Files\t*.txt");
         if (fnfc.show())return;
         freopen(fnfc.filename(), "r", stdin);///
         getJob();
         fclose(stdin);
+        spinner->maximum(machineNum - 1);
 
         shadiao->show();
         box_makespan->label("Calculating...");
@@ -122,7 +129,7 @@ void draw_gantt_cb(void *s) {
     for (int i = 0; i < machineNum; ++i) {
         MACHINEPTR node = machine[i];
         for (int j = 0; j < jobNum; ++j) {
-            Fl_Box *box = new Fl_Box(line_status * 100 + node->startTime * 3, i * 75,
+            Fl_Box *box = new Fl_Box(node->startTime * 3, i * 75,
                                      (node->endTime - node->startTime) * 3, 28);
             std::string str = std::to_string(node->job) + "-" + std::to_string(node->order) + "\n" +
                               std::to_string(node->startTime) + "-" + std::to_string(node->endTime);
@@ -133,8 +140,6 @@ void draw_gantt_cb(void *s) {
             node = node->nextJob;
         }
     }
-    Fl_Box *box = new Fl_Box(0, machineNum * 75, 1, 25);
-    box->box(FL_NO_BOX);
 
 
     if (overhaul) {
@@ -143,7 +148,7 @@ void draw_gantt_cb(void *s) {
             if (overhaul[i]) {
                 tmp = overhaul[i];
                 for (int j = 0; tmp; j++) {
-                    Fl_Box *box = new Fl_Box(line_status * 100 + tmp->startTime * 3, i * 75,
+                    Fl_Box *box = new Fl_Box(tmp->startTime * 3, i * 75,
                                              (tmp->endTime - tmp->startTime) * 3, 28);
                     std::string str = "Overhaul-" + std::to_string(i) + "\n" + std::to_string(tmp->startTime) + "-" +
                                       std::to_string(tmp->endTime);
@@ -233,6 +238,7 @@ void overhaul_thread() {
     makespan = computeDAGAndStartTime(population[0], 1);//Mode 1 for output;
     scroll2->clear();
     draw_gantt_cb(scroll2);
+    move_status = ON;
 }
 
 void overhaul_confirm_cb(Fl_Widget *button) {
@@ -358,7 +364,7 @@ int main(int argc, char **argv) {
     button_overhaul.callback(overhaul_cb);
 
 
-    window_gantt->resizable(gantt);
+    //window_gantt->resizable(gantt);
     window_gantt->callback(quit_cb);
     window_gantt->end();//We tell FLTK that we will not add any more widgets to window.
     window_gantt->hide();
@@ -368,7 +374,6 @@ int main(int argc, char **argv) {
 
     spinner = new Fl_Spinner(WINDOW_WIDTH / 10, 30, 200, INPUT_HEIGHT, "Machine:");
     spinner->minimum(0);
-    spinner->maximum(machineNum - 1);
     spinner->step(1);
     spinner->value(0);
 

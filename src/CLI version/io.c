@@ -1,4 +1,4 @@
-//author dachr
+﻿//author dachr/zhangzhibo
 #include <malloc.h>
 #include "jobshop.h"
 

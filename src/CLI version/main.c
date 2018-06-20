@@ -1,4 +1,4 @@
-//author dachr
+//author dachr/zhangzhibo
 #include "jobshop.h"
 
 extern void *getJob();
